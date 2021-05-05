@@ -3,39 +3,26 @@
 #include <vector>
 
 // TODO:
-enum class LexType
-{
+enum class LexType {
 
 };
 
 typedef std::vector<std::vector<LexType>> LexResult;
 
-void io(peg_parser::ParserGenerator<std::string> &g)
-{
+void io(peg_parser::ParserGenerator<std::string> &g) {
   std::string str, input;
-  while (true)
-  {
+  while (true) {
     std::getline(std::cin, str);
-    if (str == "q" || str == "quit")
-      break;
+    if (str == "q" || str == "quit") break;
     // WARNING: check input string to prevent injection attack
-    if (str != "")
-    {
-      input += str + '\n';
-    }
-    else
-    {
-      break;
-    }
+    if (str != "") input += str + '\n';
+    else break;
   }
-  try
-  {
+  try {
     auto output = g.run(input);
     std::cout << "Parsing result: " << output << std::endl;
     input.clear();
-  }
-  catch (peg_parser::SyntaxError &error)
-  {
+  } catch (peg_parser::SyntaxError &error) {
     std::cout << "Syntax error when parsing " << error.syntax->rule->name << std::endl;
   }
 }
@@ -59,9 +46,9 @@ void config(peg_parser::ParserGenerator<std::string> &g)
   g["Ifdef"] << "'#ifdef' Identifier '\n'" >> [](auto) { return "Ifdef"; };                  // tested
   g["Ifndef"] << "'#ifndef' Identifier '\n'" >> [](auto) { return "Ifndef"; };               // tested
   g["Define"] << "'#define' Identifier (Identifier)? '\n'" >> [](auto) { return "Define"; }; // tested
+  g["Pragma"] << "'#pragma' (!'\n' !';' .)+ '\n'" >> [](auto) { return "Pragma"; };          // WARNING: roughly tested
   g["Include_bracket"] << "'#include' ' '* '<' ([a-zA-Z] | '.' | '/' | '_')+ '>' '\n'" >> [](auto) { return "Include_bracket"; };
   g["Include_quote"] << "'#include' ' '* '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"' '\n'" >> [](auto) { return "Include_quote"; };
-  g["Pragma"] << "'#pragma' (!'\n' !';' .)+ '\n'" >> [](auto) { return "Pragma"; }; // WARNING: roughly tested
 
   // function definition
   // g["Function"] << "('inline')? Type Identifier ArgumentList (';' | Block)" >> [](auto) { return "Function"; };
@@ -72,7 +59,6 @@ void config(peg_parser::ParserGenerator<std::string> &g)
   g["ArgumentList"] << "'(' (Type Identifier? (',' Type Identifier?)*)? ')'" >> [](auto) { return "ArgumentList"; }; // tested
 
   // type
-  // TODO: do not support *std::size_t*
   g["Type"] << "PrimitiveType";
   g["PrimitiveType"] << " (t_const ' ')? (t_static ' ')?"
                         "(t_int | t_short | t_long | t_char | t_double | t_float | t_long_double"
@@ -116,17 +102,19 @@ void config(peg_parser::ParserGenerator<std::string> &g)
 
   g["ReturnStatement"] << "'return' Expression ';'" >> [](auto) { return "ReturnStatement"; };
   g["LoopStatement"] << "WhileLoop | DoWhileLoop | ForLoop"; // tested
-  g["WhileLoop"] << "'while' Indent '(' Condition ')' Indent (('\n'? Statement? ';') | Block)" >> [](auto) {
+  g["WhileLoop"] << "'while' Indent '(' Condition ')' Indent (('\n'? Statement? ';') | Block)"
+  >> [](auto) {
     return "WhileLoop";
   }; // tested
 
   g["DoWhileLoop"] << "'do' Indent (('\n'? Statement? ';') | Block)"
-                      "['\n' ]* 'while' Indent '(' Condition ')' ' '? ';'" >>
-      [](auto) {
-        return "DoWhileLoop";
-      }; // tested
+                      "['\n' ]* 'while' Indent '(' Condition ')' ' '? ';'"
+  >> [](auto) {
+    return "DoWhileLoop";
+  }; // tested
 
-  g["ForLoop"] << "'for' Indent '(' Declaration ';' ' '? Condition? ';' ' '? Expression? ')' Indent (('\n'? Indent Statement? ';') | Block)" >> [](auto) {
+  g["ForLoop"] << "'for' Indent '(' Declaration ';' ' '? Condition? ';' ' '? Expression? ')' Indent (('\n'? Indent Statement? ';') | Block)"
+  >> [](auto) {
     return "ForLoop";
   }; // tested
 
@@ -154,14 +142,15 @@ void config(peg_parser::ParserGenerator<std::string> &g)
   // g["ControlStatement"] << "'if' '(' Condition ')' ('\n'? Statement? ';' | Block) ('else' 'if' '(' Condition ')' ('\n'? Statement? ';' | Block))* ('else' ('\n'? Statement? ';' | Block))?";
   g["ControlStatement"] << "'if' Indent '(' Condition ')' (('\n'? Indent Statement? ';') | Block)"
                            " (['\n' ]* 'else if' Indent '(' Condition ')' (('\n'? Indent Statement? ';') | Block))*"
-                           " (['\n' ]* 'else' Indent (('\n'? Indent Statement? ';') | Block))+" >>
-      [](auto) { return "ControlStatement"; }; // tested
+                           " (['\n' ]* 'else' Indent (('\n'? Indent Statement? ';') | Block))+"
+  >> [](auto) {
+    return "ControlStatement";
+  }; // tested
 
   g["Typedef"] << "'typedef' Type Identifier ';'" >> [](auto) { return "Typedef"; }; // tested
 
   // TODO: do not support declaration after class block
   g["Class"] << "'class' Identifier ClassBlock? ';'" >> [](auto) { return "Class"; }; // tested
-
   g["Struct"] << "'struct' Identifier ClassBlock? ';'" >> [](auto) { return "Struct"; }; // tested
 
   // TODO: allow *private*, *protected* and *public*
