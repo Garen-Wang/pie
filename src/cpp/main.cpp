@@ -3,45 +3,31 @@
 #include <vector>
 
 // TODO:
-enum class LexType
-{
+enum class LexType {
 
 };
 
 typedef std::vector<std::vector<LexType>> LexResult;
 
-void io(peg_parser::ParserGenerator<std::string> &g)
-{
+void io(peg_parser::ParserGenerator<std::string> &g) {
   std::string str, input;
-  while (true)
-  {
+  while (true) {
     std::getline(std::cin, str);
-    if (str == "q" || str == "quit")
-      break;
+    if (str == "q" || str == "quit") break;
     // WARNING: check input string to prevent injection attack
-    if (str != "")
-    {
-      input += str + '\n';
-    }
-    else
-    {
-      break;
-    }
+    if (str != "") input += str + '\n';
+    else break;
   }
-  try
-  {
+  try {
     auto output = g.run(input);
     std::cout << "Parsing result: " << output << std::endl;
     input.clear();
-  }
-  catch (peg_parser::SyntaxError &error)
-  {
+  } catch (peg_parser::SyntaxError &error) {
     std::cout << "Syntax error when parsing " << error.syntax->rule->name << std::endl;
   }
 }
 
-void config(peg_parser::ParserGenerator<std::string> &g)
-{
+void config(peg_parser::ParserGenerator<std::string> &g) {
   // separator
   g.setSeparator(g["Separators"] << "[\t ]");
 
@@ -170,15 +156,13 @@ void config(peg_parser::ParserGenerator<std::string> &g)
   // starter
   g.setStart(g["Program"] << "LoopStatement '\n'");
 }
-peg_parser::ParserGenerator<std::string> generate()
-{
+peg_parser::ParserGenerator<std::string> generate() {
   peg_parser::ParserGenerator<std::string> g;
   config(g);
   return g;
 }
 
-int main()
-{
+int main() {
   auto g = generate();
   io(g);
   return 0;
