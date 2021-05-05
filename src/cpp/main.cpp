@@ -76,9 +76,9 @@ void config(peg_parser::ParserGenerator<std::string> &g)
   g["Type"] << "PrimitiveType";
   g["PrimitiveType"] << " (t_const ' ')? (t_static ' ')?"
                         "(t_int | t_short | t_long | t_char | t_double | t_float | t_long_double"
-                        "t_signed_int | t_signed_short | t_signed_long | t_signed_char"
-                        "t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
-                        "t_auto, t_size_t)"
+                        "| t_signed_int | t_signed_short | t_signed_long | t_signed_char"
+                        "| t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
+                        "| t_auto | t_size_t)"
                         "(' '? ['*''&'])?"; // tested
 
   // primitive data types
