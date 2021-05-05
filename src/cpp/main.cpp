@@ -27,8 +27,7 @@ void io(peg_parser::ParserGenerator<std::string> &g) {
   }
 }
 
-void config(peg_parser::ParserGenerator<std::string> &g)
-{
+void config(peg_parser::ParserGenerator<std::string> &g) {
   // separator
   g.setSeparator(g["Separators"] << "[\t ]");
 
@@ -159,15 +158,13 @@ void config(peg_parser::ParserGenerator<std::string> &g)
   // starter
   g.setStart(g["Program"] << "LoopStatement '\n'");
 }
-peg_parser::ParserGenerator<std::string> generate()
-{
+peg_parser::ParserGenerator<std::string> generate() {
   peg_parser::ParserGenerator<std::string> g;
   config(g);
   return g;
 }
 
-int main()
-{
+int main() {
   auto g = generate();
   io(g);
   return 0;
