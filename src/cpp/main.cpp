@@ -2,12 +2,15 @@
 #include <iostream>
 #include <vector>
 
-// TODO:
-enum class LexType {
-
+// TODO: pass result in from of LexemeResult
+enum class LexemeType {
+  OrdinaryCharacter,
+  BuiltInOperator,
+  StringLiteral,
+  Comment,
+  Keywords,
 };
-
-typedef std::vector<std::vector<LexType>> LexResult;
+typedef std::vector<std::vector<LexemeType>> LexResult;
 
 void io(peg_parser::ParserGenerator<std::string> &g) {
   std::string str, input;
@@ -37,7 +40,7 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   // comment
   g["Comment"] << "SingleLineComment | MultiLineComment";
   g["SingleLineComment"] << "'//' (!'\n' .)* '\n'" >> [](auto) { return "SingleLineComment"; };
-  g["MultiLineComment"] << "'/*'  (!'*' .)* '*/' '\n'" >> [](auto) { return "MultiLineComment"; }; // DEBUG:
+  g["MultiLineComment"] << "'/*'  (!'*' .)* '*/' '\n'" >> [](auto) { return "MultiLineComment"; };
 
   // preprocessing
   g["Preprocessing"] << "(Include | Ifdef | Ifndef | Define | Pragma)";                      // tested
@@ -50,19 +53,18 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["Include_quote"] << "'#include' ' '* '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"' '\n'" >> [](auto) { return "Include_quote"; };
 
   // function definition
-  // g["Function"] << "('inline')? Type Identifier ArgumentList (';' | Block)" >> [](auto) { return "Function"; };
   g["Function"] << "('inline')? Type Identifier ArgumentList ';'" >> [](auto) { return "Function"; }; // tested
 
   // argument list (with lparen and rparent)
-  // g["ArgumentList"] << "'(' Type Identifier? (',' Type Identifier?)* ')'" >> [](auto) { return "ArgumentList"; };
   g["ArgumentList"] << "'(' (Type Identifier? (',' Type Identifier?)*)? ')'" >> [](auto) { return "ArgumentList"; }; // tested
 
   // type
   g["Type"] << "PrimitiveType";
-  g["PrimitiveType"] << " (t_const ' ')? (t_static ' ')?"
-                        "(t_int | t_short | t_long | t_char | t_double | t_float | t_long_double"
-                        "| t_signed_int | t_signed_short | t_signed_long | t_signed_char"
-                        "| t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
+  // WARNING: potential bugs like *auto&*, auto*
+  g["PrimitiveType"] << // " (t_const ' ')? (t_static ' ')?"
+                        "(t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
+                        "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
+                        "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
                         "| t_auto | t_size_t)"
                         "(' '? ['*''&'])?"; // tested
 
@@ -77,22 +79,24 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["t_unsigned"] << "'unsigned'" >> [](auto) { return "unsigned"; };
   g["t_const"] << "'const'" >> [](auto) { return "const"; };
   g["t_static"] << "'static'" >> [](auto) { return "static"; };
+  g["t_long_long"] << "'long long'" >> [](auto) { return "long long"; };
+  g["t_long_double"] << "'long double'" >> [](auto) { return "long double"; };
 
   g["t_signed_short"] << "'signed short'" >> [](auto) { return "signed_short"; };
   g["t_signed_int"] << "'signed int'" >> [](auto) { return "signed_int"; };
   g["t_signed_long"] << "'signed long'" >> [](auto) { return "signed_long"; };
   g["t_signed_char"] << "'signed char'" >> [](auto) { return "signed_char"; };
+  g["t_signed_long_long"] << "'signed long long'" >> [](auto) { return "signed long long"; };
   g["t_unsigned_short"] << "'unsigned short'" >> [](auto) { return "unsigned_short"; };
   g["t_unsigned_int"] << "'unsigned int'" >> [](auto) { return "unsigned_int"; };
   g["t_unsigned_long"] << "'unsigned long'" >> [](auto) { return "unsigned_long"; };
   g["t_unsigned_char"] << "'unsigned char'" >> [](auto) { return "unsigned_char"; };
-  g["t_long_double"] << "'long double'" >> [](auto) { return "long double"; };
+  g["t_unsigned_long_long"] << "'unsigned long long'" >> [](auto) { return "unsigned long long"; };
 
   g["t_auto"] << "'auto'" >> [](auto) { return "auto"; };
   g["t_size_t"] << "'std::'? 'size_t'" >> [](auto) { return "size_t"; };
 
   // block: supported both versions of coding style
-  // g["Block"] << "('\n' '{' | '{' '\n') Statement* '}'" >> [](auto) { return "Block"; };
   // DEBUG: no statement inside block!!!
   g["Block"] << "'\n'? '{' Indent '\n'? '}'" >> [](auto) { return "Block"; };
 
@@ -100,18 +104,17 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["Statement"] << "DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | Typedef | Class | Struct | Block" >> [](auto) { return "Statement"; };
 
   g["ReturnStatement"] << "'return' Expression ';'" >> [](auto) { return "ReturnStatement"; };
+
   g["LoopStatement"] << "WhileLoop | DoWhileLoop | ForLoop"; // tested
   g["WhileLoop"] << "'while' Indent '(' Condition ')' Indent (('\n'? Statement? ';') | Block)"
   >> [](auto) {
     return "WhileLoop";
   }; // tested
-
   g["DoWhileLoop"] << "'do' Indent (('\n'? Statement? ';') | Block)"
                       "['\n' ]* 'while' Indent '(' Condition ')' ' '? ';'"
   >> [](auto) {
     return "DoWhileLoop";
   }; // tested
-
   g["ForLoop"] << "'for' Indent '(' Declaration ';' ' '? Condition? ';' ' '? Expression? ')' Indent (('\n'? Indent Statement? ';') | Block)"
   >> [](auto) {
     return "ForLoop";
@@ -156,7 +159,7 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["ClassBlock"] << "Block" >> [](auto) { return "ClassBlock"; };
 
   // starter
-  g.setStart(g["Program"] << "LoopStatement '\n'");
+  g.setStart(g["Program"] << "PrimitiveType '\n'");
 }
 peg_parser::ParserGenerator<std::string> generate() {
   peg_parser::ParserGenerator<std::string> g;
