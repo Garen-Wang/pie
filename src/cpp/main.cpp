@@ -1,6 +1,9 @@
 #include <peg_parser/generator.h>
 #include <iostream>
+#include <string>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
 
 // TODO: pass result in from of LexemeResult
 enum class LexemeType {
@@ -12,7 +15,80 @@ enum class LexemeType {
 };
 typedef std::vector<std::vector<LexemeType>> LexResult;
 
-void io(peg_parser::ParserGenerator<std::string> &g) {
+typedef peg_parser::ParserGenerator<std::string> Parser;
+
+class VariableTable {
+  private:
+    // for int value:
+    // 0 means this value has been updated
+    // 1 stands for c primitive data type
+    // 2 stands for c++ STL data type
+    // 3 stands for user-defined data type
+    std::unordered_map<std::string, int> variableTable; // store variables
+  public:
+    void append(const std::string &str, int status) {
+      variableTable[str] = status;
+    }
+    void update(Parser &g) {
+      for (auto &it : variableTable) {
+        if (it.second == 0) continue;
+        std::string variable = it.first;
+        std::string _variable = variable;
+        std::replace(_variable.begin(), _variable.end(), ' ', '_');
+        g["v_" + _variable] << ("'" + variable + "'") >> [](auto) { return "variable in variableTable"; };
+        it.second = 0; // WARNING: I wonder if this statement works
+      }
+    }
+} variableTable;
+
+class TypeTable {
+  private:
+    // here int seems to have no such meaning
+    std::unordered_map<std::string, int> typeTable; // store data types
+  public:
+    void append(const std::string &str, int type) {
+      typeTable[str] = type;
+    }
+    void update(Parser &g) {
+      for (auto &it : typeTable) {
+        if (it.second == 0) continue;
+        std::string type = it.first;
+        std::string _type = type;
+        std::replace(_type.begin(), _type.end(), ' ', '_');
+        g["t_" + _type] << ("'" + type + "'") >> [](auto) { return "type in typeTable"; };
+        it.second = 0; // WARNING: I wonder if this statement works
+      }
+    }
+
+} typeTable;
+
+
+void initTypeTable(Parser &g) {
+  typeTable.append("double", 1);
+  typeTable.append("float", 1);
+  typeTable.append("long double", 1);
+  typeTable.append("char", 1);
+  typeTable.append("int", 1);
+  typeTable.append("short", 1);
+  typeTable.append("long", 1);
+  typeTable.append("long long", 1);
+  typeTable.append("signed", 1);
+  typeTable.append("signed char", 1);
+  typeTable.append("signed int", 1);
+  typeTable.append("signed short", 1);
+  typeTable.append("signed long", 1);
+  typeTable.append("signed long long", 1);
+  typeTable.append("unsigned", 1);
+  typeTable.append("unsigned char", 1);
+  typeTable.append("unsigned int", 1);
+  typeTable.append("unsigned short", 1);
+  typeTable.append("unsigned long", 1);
+  typeTable.append("unsigned long long", 1);
+
+  typeTable.update(g);
+}
+
+void io(Parser &g) {
   std::string str, input;
   while (true) {
     std::getline(std::cin, str);
@@ -30,7 +106,8 @@ void io(peg_parser::ParserGenerator<std::string> &g) {
   }
 }
 
-void detail(peg_parser::ParserGenerator<std::string> &g) {
+void detail(Parser &g) {
+  initTypeTable(g);
   // comment
   g["SingleLineComment"] << "'//' (!'\n' .)* '\n'" >> [](auto) { return "SingleLineComment"; };
   g["MultiLineComment"] << "'/*'  (!'*' .)* '*/' '\n'" >> [](auto) { return "MultiLineComment"; };
@@ -43,30 +120,15 @@ void detail(peg_parser::ParserGenerator<std::string> &g) {
   g["Include_bracket"] << "'#include' ' '* '<' ([a-zA-Z] | '.' | '/' | '_')+ '>' '\n'" >> [](auto) { return "Include_bracket"; };
   g["Include_quote"] << "'#include' ' '* '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"' '\n'" >> [](auto) { return "Include_quote"; };
 
-  // primitive data types
-  g["t_double"] << "'double'" >> [](auto) { return "double"; };
-  g["t_float"] << "'float'" >> [](auto) { return "float"; };
-  g["t_int"] << "'int'" >> [](auto) { return "int"; };
-  g["t_short"] << "'short'" >> [](auto) { return "short"; };
-  g["t_long"] << "'long'" >> [](auto) { return "long"; };
-  g["t_char"] << "'char'" >> [](auto) { return "char"; };
-  g["t_signed"] << "'signed'" >> [](auto) { return "signed"; };
-  g["t_unsigned"] << "'unsigned'" >> [](auto) { return "unsigned"; };
-  g["t_const"] << "'const'" >> [](auto) { return "const"; };
-  g["t_static"] << "'static'" >> [](auto) { return "static"; };
-  g["t_long_long"] << "'long long'" >> [](auto) { return "long long"; };
-  g["t_long_double"] << "'long double'" >> [](auto) { return "long double"; };
+  // TODO: typedef will generate new type
+  // TODO: store newly generated type to typeTable
+  g["Typedef"] << "'typedef' Type Identifier ';'" >> [](auto) { return "Typedef"; }; // tested
 
-  g["t_signed_short"] << "'signed short'" >> [](auto) { return "signed_short"; };
-  g["t_signed_int"] << "'signed int'" >> [](auto) { return "signed_int"; };
-  g["t_signed_long"] << "'signed long'" >> [](auto) { return "signed_long"; };
-  g["t_signed_char"] << "'signed char'" >> [](auto) { return "signed_char"; };
-  g["t_signed_long_long"] << "'signed long long'" >> [](auto) { return "signed long long"; };
-  g["t_unsigned_short"] << "'unsigned short'" >> [](auto) { return "unsigned_short"; };
-  g["t_unsigned_int"] << "'unsigned int'" >> [](auto) { return "unsigned_int"; };
-  g["t_unsigned_long"] << "'unsigned long'" >> [](auto) { return "unsigned_long"; };
-  g["t_unsigned_char"] << "'unsigned char'" >> [](auto) { return "unsigned_char"; };
-  g["t_unsigned_long_long"] << "'unsigned long long'" >> [](auto) { return "unsigned long long"; };
+  g["k_const"] << "'const'" >> [](auto) { return "const"; };
+  g["k_static"] << "'static'" >> [](auto) { return "static"; };
+
+  // TODO: allow *private*, *protected* and *public*
+  g["ClassBlock"] << "Block" >> [](auto) { return "ClassBlock"; };
 
   g["t_auto"] << "'auto'" >> [](auto) { return "auto"; };
   g["t_size_t"] << "'std::'? 'size_t'" >> [](auto) { return "size_t"; };
@@ -97,7 +159,7 @@ void detail(peg_parser::ParserGenerator<std::string> &g) {
   g["OctLiteral"] << "'-'? '0' ('0' | ([1-7][0-7]*))" >> [](auto) { return "OctLiteral"; }; // tested
 }
 
-void config(peg_parser::ParserGenerator<std::string> &g) {
+void config(Parser &g) {
   detail(g);
   // separator
   g.setSeparator(g["Separators"] << "[\t ]");
@@ -119,13 +181,13 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
 
   g["FunctionCall"] << "Identifier ParameterList" >> [](auto) { return "FunctionCall"; }; // tested
   // TODO: do not support literal as parameter
-  g["ParameterList"] << "'('( Identifier (',' Identifier)* )? ')'" >> [](auto) { return "ParameterList"; }; // tested
+  g["ParameterList"] << "'('( Parameter (',' Parameter)* )? ')'" >> [](auto) { return "ParameterList"; }; // tested
 
   // type
   // TODO: waiting to expand type, not only the primitive data types
   g["Type"] << "PrimitiveType";
   // WARNING: potential bugs like auto&, auto*
-  g["PrimitiveType"] << " (t_const)? (t_static)?"
+  g["PrimitiveType"] << " (k_const)? (k_static)?"
                         "(t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
                         "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
                         "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
@@ -137,15 +199,20 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   // DEBUG: no statement inside block!!!
   g["Block"] << "'\n'? '{' Indent '\n'? '}'" >> [](auto) { return "Block"; };
 
+  // TODO: do not support declaration after class block
+  g["Class"] << "'class' Identifier ClassBlock? ';'" >> [](auto) { return "Class"; }; // tested
+  g["Struct"] << "'struct' Identifier ClassBlock? ';'" >> [](auto) { return "Struct"; }; // tested
+
   // statement
   g["Statement"] << "DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | Typedef | Class | Struct | Block" >> [](auto) { return "Statement"; };
 
 
   g["LoopStatement"] << "WhileLoop | DoWhileLoop | ForLoop"; // tested
 
-  // TODO
   // g["Declaration"] << "Type Identifier ('=' (Identifier | MemberVariable | MemberMethod | Literal))?" >> [](auto) { return "Declaration"; };
-  g["Declaration"] << "Type Identifier Indent '=' Indent '-'? [0-9]+" >> [](auto) { return "Declaration"; };
+  // declaration is where new variables are created
+  // TODO: interact with variableTable in action
+  g["Declaration"] << "Type Identifier Indent '=' Indent Parameter" >> [](auto) { return "Declaration"; };
 
   // TODO
   // g["MemberVariable"];
@@ -175,21 +242,17 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
     return "ControlStatement";
   }; // tested
 
-  g["Typedef"] << "'typedef' Type Identifier ';'" >> [](auto) { return "Typedef"; }; // tested
+  g["Parameter"] << "DefinedVariable | Literal" >> [](auto) { return "Parameter"; };
 
-  // TODO: do not support declaration after class block
-  g["Class"] << "'class' Identifier ClassBlock? ';'" >> [](auto) { return "Class"; }; // tested
-  g["Struct"] << "'struct' Identifier ClassBlock? ';'" >> [](auto) { return "Struct"; }; // tested
-
-  // TODO: allow *private*, *protected* and *public*
-  g["ClassBlock"] << "Block" >> [](auto) { return "ClassBlock"; };
+  // TODO: check whether the identifier is in variableTable through action
+  g["DefinedVariable"] << "Identifier" >> [](auto) { return "DefinedVariable"; };
 
   // starter
-  g.setStart(g["Program"] << "Literal '\n'");
+  g.setStart(g["Program"] << "Parameter '\n'");
 }
 
-peg_parser::ParserGenerator<std::string> generate() {
-  peg_parser::ParserGenerator<std::string> g;
+Parser generate() {
+  Parser g;
   config(g);
   return g;
 }
