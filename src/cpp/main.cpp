@@ -30,20 +30,11 @@ void io(peg_parser::ParserGenerator<std::string> &g) {
   }
 }
 
-void config(peg_parser::ParserGenerator<std::string> &g) {
-  // separator
-  g.setSeparator(g["Separators"] << "[\t ]");
-
-  // identifier
-  g["Identifier"] << "([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*" >> [](auto) { return "Identifier"; };
-
+void detail(peg_parser::ParserGenerator<std::string> &g) {
   // comment
-  g["Comment"] << "SingleLineComment | MultiLineComment";
   g["SingleLineComment"] << "'//' (!'\n' .)* '\n'" >> [](auto) { return "SingleLineComment"; };
   g["MultiLineComment"] << "'/*'  (!'*' .)* '*/' '\n'" >> [](auto) { return "MultiLineComment"; };
 
-  // preprocessing
-  g["Preprocessing"] << "(Include | Ifdef | Ifndef | Define | Pragma)";                      // tested
   g["Include"] << "Include_bracket | Include_quote" >> [](auto) { return "Include"; };       // tested
   g["Ifdef"] << "'#ifdef' Identifier '\n'" >> [](auto) { return "Ifdef"; };                  // tested
   g["Ifndef"] << "'#ifndef' Identifier '\n'" >> [](auto) { return "Ifndef"; };               // tested
@@ -51,27 +42,6 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["Pragma"] << "'#pragma' (!'\n' !';' .)+ '\n'" >> [](auto) { return "Pragma"; };          // WARNING: roughly tested
   g["Include_bracket"] << "'#include' ' '* '<' ([a-zA-Z] | '.' | '/' | '_')+ '>' '\n'" >> [](auto) { return "Include_bracket"; };
   g["Include_quote"] << "'#include' ' '* '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"' '\n'" >> [](auto) { return "Include_quote"; };
-
-  // function declaration and definition
-  g["Function"] << "('inline')? Type Identifier ArgumentList (';' | Block)" >> [](auto) { return "Function"; }; // tested
-
-  // argument list (with lparen and rparent)
-  g["ArgumentList"] << "'(' (Type Identifier? (',' Type Identifier?)*)? ')'" >> [](auto) { return "ArgumentList"; }; // tested
-
-  g["FunctionCall"] << "Identifier ParameterList" >> [](auto) { return "FunctionCall"; }; // tested
-  // TODO: do not support literal as parameter
-  g["ParameterList"] << "'('( Identifier (',' Identifier)* )? ')'" >> [](auto) { return "ParameterList"; }; // tested
-
-  // type
-  // TODO: waiting to expand type, not only the primitive data types
-  g["Type"] << "PrimitiveType";
-  // WARNING: potential bugs like auto&, auto*
-  g["PrimitiveType"] << " (t_const)? (t_static)?"
-                        "(t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
-                        "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
-                        "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
-                        "| t_auto | t_size_t)"
-                        "(' '? ['*''&'])?"; // tested
 
   // primitive data types
   g["t_double"] << "'double'" >> [](auto) { return "double"; };
@@ -101,16 +71,8 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["t_auto"] << "'auto'" >> [](auto) { return "auto"; };
   g["t_size_t"] << "'std::'? 'size_t'" >> [](auto) { return "size_t"; };
 
-  // block: supported both versions of coding style
-  // DEBUG: no statement inside block!!!
-  g["Block"] << "'\n'? '{' Indent '\n'? '}'" >> [](auto) { return "Block"; };
-
-  // statement
-  g["Statement"] << "DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | Typedef | Class | Struct | Block" >> [](auto) { return "Statement"; };
-
   g["ReturnStatement"] << "'return' Expression ';'" >> [](auto) { return "ReturnStatement"; };
 
-  g["LoopStatement"] << "WhileLoop | DoWhileLoop | ForLoop"; // tested
   g["WhileLoop"] << "'while' Indent '(' Condition ')' Indent (('\n'? Statement? ';') | Block)"
   >> [](auto) {
     return "WhileLoop";
@@ -125,23 +87,82 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
     return "ForLoop";
   }; // tested
 
+  g["StringLiteral"] << "'\"' (!'\"' .)* '\"'" >> [](auto) { return "StringLiteral"; };
+
+  // TODO: char literal has bug here so temporarily deprecated
+  // g["CharLiteral"] << "'\''" >> [](auto) { return "CharLiteral"; };
+ 
+  g["DecLiteral"] << "'-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)?" >> [](auto) { return "DecLiteral"; }; // including fraction, tested
+  g["HexLiteral"] << "'-'? '0x' ('0' | ([1-9a-fA-F][0-9a-fA-F]*))" >> [](auto) { return "HexLiteral"; }; // tested
+  g["OctLiteral"] << "'-'? '0' ('0' | ([1-7][0-7]*))" >> [](auto) { return "OctLiteral"; }; // tested
+}
+
+void config(peg_parser::ParserGenerator<std::string> &g) {
+  detail(g);
+  // separator
+  g.setSeparator(g["Separators"] << "[\t ]");
+
+  // identifier
+  g["Identifier"] << "([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*" >> [](auto) { return "Identifier"; };
+
+  // comment
+  g["Comment"] << "SingleLineComment | MultiLineComment";
+
+  // preprocessing
+  g["Preprocessing"] << "(Include | Ifdef | Ifndef | Define | Pragma)";                      // tested
+
+  // function declaration and definition
+  g["Function"] << "('inline')? Type Identifier ArgumentList (';' | Block)" >> [](auto) { return "Function"; }; // tested
+
+  // argument list (with lparen and rparent)
+  g["ArgumentList"] << "'(' (Type Identifier? (',' Type Identifier?)*)? ')'" >> [](auto) { return "ArgumentList"; }; // tested
+
+  g["FunctionCall"] << "Identifier ParameterList" >> [](auto) { return "FunctionCall"; }; // tested
+  // TODO: do not support literal as parameter
+  g["ParameterList"] << "'('( Identifier (',' Identifier)* )? ')'" >> [](auto) { return "ParameterList"; }; // tested
+
+  // type
+  // TODO: waiting to expand type, not only the primitive data types
+  g["Type"] << "PrimitiveType";
+  // WARNING: potential bugs like auto&, auto*
+  g["PrimitiveType"] << " (t_const)? (t_static)?"
+                        "(t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
+                        "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
+                        "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
+                        "| t_auto | t_size_t)"
+                        "(' '? ['*''&'])?"; // tested
+
+
+  // block: supported both versions of coding style
+  // DEBUG: no statement inside block!!!
+  g["Block"] << "'\n'? '{' Indent '\n'? '}'" >> [](auto) { return "Block"; };
+
+  // statement
+  g["Statement"] << "DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | Typedef | Class | Struct | Block" >> [](auto) { return "Statement"; };
+
+
+  g["LoopStatement"] << "WhileLoop | DoWhileLoop | ForLoop"; // tested
+
   // TODO
   // g["Declaration"] << "Type Identifier ('=' (Identifier | MemberVariable | MemberMethod | Literal))?" >> [](auto) { return "Declaration"; };
   g["Declaration"] << "Type Identifier Indent '=' Indent '-'? [0-9]+" >> [](auto) { return "Declaration"; };
 
   // TODO
-  g["MemberVariable"];
+  // g["MemberVariable"];
   // TODO
-  g["MemberMethod"];
-  // TODO
-  g["Literal"];
+  // g["MemberMethod"];
+
+  // TODO: add CharLiteral into Literal
+  g["Literal"] << "StringLiteral | HexLiteral | OctLiteral | DecLiteral ";
+
 
   // condition, not in parentheses
   // TODO
   g["Condition"] << "Expression" >> [](auto) { return "Condition"; };
 
   // expression with built-in operators
-  // TODO
+  // expression without semicolon
+  // TODO: simplification that expression = 'a'
   g["Expression"] << "'a'" >> [](auto) { return "Expression"; };
 
   g["Indent"] << "(' ')*" >> [](auto) { return "Indent"; };
@@ -164,8 +185,9 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["ClassBlock"] << "Block" >> [](auto) { return "ClassBlock"; };
 
   // starter
-  g.setStart(g["Program"] << "FunctionCall '\n'");
+  g.setStart(g["Program"] << "Literal '\n'");
 }
+
 peg_parser::ParserGenerator<std::string> generate() {
   peg_parser::ParserGenerator<std::string> g;
   config(g);
