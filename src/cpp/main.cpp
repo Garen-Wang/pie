@@ -52,13 +52,18 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["Include_bracket"] << "'#include' ' '* '<' ([a-zA-Z] | '.' | '/' | '_')+ '>' '\n'" >> [](auto) { return "Include_bracket"; };
   g["Include_quote"] << "'#include' ' '* '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"' '\n'" >> [](auto) { return "Include_quote"; };
 
-  // function definition
-  g["Function"] << "('inline')? Type Identifier ArgumentList ';'" >> [](auto) { return "Function"; }; // tested
+  // function declaration and definition
+  g["Function"] << "('inline')? Type Identifier ArgumentList (';' | Block)" >> [](auto) { return "Function"; }; // tested
 
   // argument list (with lparen and rparent)
   g["ArgumentList"] << "'(' (Type Identifier? (',' Type Identifier?)*)? ')'" >> [](auto) { return "ArgumentList"; }; // tested
 
+  g["FunctionCall"] << "Identifier ParameterList" >> [](auto) { return "FunctionCall"; }; // tested
+  // TODO: do not support literal as parameter
+  g["ParameterList"] << "'('( Identifier (',' Identifier)* )? ')'" >> [](auto) { return "ParameterList"; }; // tested
+
   // type
+  // TODO: waiting to expand type, not only the primitive data types
   g["Type"] << "PrimitiveType";
   // WARNING: potential bugs like auto&, auto*
   g["PrimitiveType"] << " (t_const)? (t_static)?"
@@ -159,7 +164,7 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
   g["ClassBlock"] << "Block" >> [](auto) { return "ClassBlock"; };
 
   // starter
-  g.setStart(g["Program"] << "PrimitiveType '\n'");
+  g.setStart(g["Program"] << "FunctionCall '\n'");
 }
 peg_parser::ParserGenerator<std::string> generate() {
   peg_parser::ParserGenerator<std::string> g;
