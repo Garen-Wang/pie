@@ -60,8 +60,8 @@ void config(peg_parser::ParserGenerator<std::string> &g) {
 
   // type
   g["Type"] << "PrimitiveType";
-  // WARNING: potential bugs like *auto&*, auto*
-  g["PrimitiveType"] << // " (t_const ' ')? (t_static ' ')?"
+  // WARNING: potential bugs like auto&, auto*
+  g["PrimitiveType"] << " (t_const)? (t_static)?"
                         "(t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
                         "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
                         "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
