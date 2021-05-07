@@ -59,17 +59,16 @@ void io(Parser &g) {
 
 void detail(Parser &g) {
   initTypeTable(g);
-  // comment
-  g["SingleLineComment"] << "('//' (!'\n' .)* '\n')" >> [](auto) { return "SingleLineComment"; };
-  g["MultiLineComment"] << "('/*'  (!'*' .)* '*/' '\n')" >> [](auto) { return "MultiLineComment"; };
+  g["SingleLineComment"] << "('//' (!'\n' .)*)" >> [](auto) { return "SingleLineComment"; };
+  g["MultiLineComment"] << "('/*'  (!'*' .)* '*/')" >> [](auto) { return "MultiLineComment"; };
 
-  g["Include"] << "(Include_bracket | Include_quote)" >> [](auto) { return "Include"; };       // tested
-  g["Ifdef"] << "('#ifdef' Identifier '\n')" >> [](auto) { return "Ifdef"; };                  // tested
-  g["Ifndef"] << "('#ifndef' Identifier '\n')" >> [](auto) { return "Ifndef"; };               // tested
-  g["Define"] << "('#define' Identifier (Identifier)? '\n')" >> [](auto) { return "Define"; }; // tested
-  g["Pragma"] << "('#pragma' (!'\n' !';' .)+ '\n')" >> [](auto) { return "Pragma"; };          // WARNING: roughly tested
-  g["Include_bracket"] << "('#include' ' '* '<' ([a-zA-Z] | '.' | '/' | '_')+ '>' '\n')" >> [](auto) { return "Include_bracket"; };
-  g["Include_quote"] << "('#include' ' '* '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"' '\n')" >> [](auto) { return "Include_quote"; };
+  g["Include"] << "(Include_bracket | Include_quote)" >> [](auto) { return "Include"; };
+  g["Ifdef"] << "('#ifdef' Indent Identifier)" >> [](auto) { return "Ifdef"; };
+  g["Ifndef"] << "('#ifndef' Indent Identifier)" >> [](auto) { return "Ifndef"; };
+  g["Define"] << "('#define' Indent Identifier (Indent Identifier)?)" >> [](auto) { return "Define"; };
+  g["Pragma"] << "('#pragma' Indent (!'\n' !';' .)+)" >> [](auto) { return "Pragma"; };
+  g["Include_bracket"] << "('#include' Indent '<' ([a-zA-Z] | '.' | '/' | '_')+ '>')" >> [](auto) { return "Include_bracket"; };
+  g["Include_quote"] << "('#include' Indent '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"')" >> [](auto) { return "Include_quote"; };
 
   // TODO: typedef will generate new type
   // TODO: store newly generated type to typeTable
@@ -116,13 +115,13 @@ void config(Parser &g) {
   g.setSeparator(g["Separators"] << "[\t ]");
 
   // identifier
-  g["Identifier"] << "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" >> [](auto) { return "Identifier"; };
+  g["Identifier"] << "([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*" >> [](auto) { return "Identifier"; }; // tested twice
 
   // comment
-  g["Comment"] << "(SingleLineComment | MultiLineComment)";
+  g["Comment"] << "(SingleLineComment | MultiLineComment)"; // tested twice
 
   // preprocessing
-  g["Preprocessing"] << "(Include | Ifdef | Ifndef | Define | Pragma)"; // tested
+  g["Preprocessing"] << "(Include | Ifdef | Ifndef | Define | Pragma)"; // tested twice
 
   // function declaration and definition
   g["Function"] << "(('inline')? Type Identifier ArgumentList (';' | Block))" >> [](auto) { return "Function"; }; // tested
@@ -221,9 +220,8 @@ void config(Parser &g) {
   g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
   g["Indexing"] << "(QualifiedConstant '[' QualifiedConstant ']')" >> [](auto) { return "Indexing"; };
   g["Expression"] << "(FunctionCall | Indexing | QualifiedConstant)";
-  g["Test"] << "(Expression)";
 
   // starter
-  g.setStart(g["Program"] << "ControlStatement '\n'");
+  g.setStart(g["Program"] << "Test '\n'");
   // int a = a;
 }
