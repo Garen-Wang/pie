@@ -77,13 +77,26 @@ void detail(Parser &g) {
   g["k_const"] << "('const')" >> [](auto) { return "const"; };
   g["k_static"] << "('static')" >> [](auto) { return "static"; };
 
-  // TODO: allow *private*, *protected* and *public*
-  g["ClassBlock"] << "(Block)" >> [](auto) { return "ClassBlock"; };
+  // argument list (with lparen and rparent)
+  g["ArgumentList"] << "('(' (Type Argument? (',' Type Argument?)*)? ')')" >> [](auto) { return "ArgumentList"; };
+  g["Argument"] << "(Identifier)";
+
+  g["ParameterList"] << "('('( Parameter (',' Parameter)* )? ')')" >> [](auto) { return "ParameterList"; };
+  g["Parameter"] << "(Expression)";
 
   g["t_auto"] << "('auto')" >> [](auto) { return "auto"; };
   g["t_size_t"] << "('std::'? 'size_t')" >> [](auto) { return "size_t"; };
 
-  g["ReturnStatement"] << "('return' Expression ';')" >> [](auto) { return "ReturnStatement"; };
+  // TODO: These three types should be created dynamically 
+  g["PrimitiveType"] << "( (k_const Indent)? (k_static Indent)?"
+                        "( t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
+                        "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
+                        "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char)"
+                        "(' '? ['*''&'])? )";
+  g["STLType"] << "(('std::')? t_size_t)";
+  g["AutoType"] << "(t_auto (' '? '&')?)";
+
+  g["ReturnStatement"] << "('return' Indent Expression ';')" >> [](auto) { return "ReturnStatement"; };
 
   g["WhileLoop"] << "('while' Indent '(' Condition ')' Indent (('\n'? Statement? ';') | Block))"
   >> [](auto) {
@@ -94,12 +107,14 @@ void detail(Parser &g) {
   >> [](auto) {
     return "DoWhileLoop";
   }; // tested
-  g["ForLoop"] << "('for' Indent '(' Declaration ';' ' '? Condition? ';' ' '? Expression? ')' Indent (('\n'? Indent Statement? ';') | Block))"
+  g["ForLoop"] << "('for' Indent '(' Declaration? ';' ' '? Condition? ';' ' '? Expression? ')' Indent (('\n'? Indent Statement? ';') | Block))"
   >> [](auto) {
     return "ForLoop";
   }; // tested
 
   g["StringLiteral"] << "('\"' (!'\"' .)* '\"')" >> [](auto) { return "StringLiteral"; };
+  // TODO: potential bug, cannot recognize '\n', '\b', etc.
+  g["CharLiteral"] << "([\'] ((!'\n' .) | (['\\']) ([a-z])) [\'])" >> [](auto) { return "CharLiteral"; };
 
   // TODO: char literal has bug here so temporarily deprecated
   // g["CharLiteral"] << "('\'')" >> [](auto) { return "CharLiteral"; };
@@ -124,41 +139,28 @@ void config(Parser &g) {
   g["Preprocessing"] << "(Include | Ifdef | Ifndef | Define | Pragma)"; // tested twice
 
   // function declaration and definition
-  g["Function"] << "(('inline')? Type Identifier ArgumentList (';' | Block))" >> [](auto) { return "Function"; }; // tested
+  g["Function"] << "(('inline')? Type Identifier ArgumentList (';' | Block))" >> [](auto) { return "Function"; }; // tested twice
 
-  // argument list (with lparen and rparent)
-  g["ArgumentList"] << "('(' (Type Argument? (',' Type Argument?)*)? ')')" >> [](auto) { return "ArgumentList"; }; // tested
-  g["Argument"] << "(Identifier)";
-
-  g["FunctionCall"] << "(Identifier ParameterList)" >> [](auto) { return "FunctionCall"; }; // tested
-  // TODO: do not support literal as parameter
-  g["ParameterList"] << "('('( Parameter (',' Parameter)* )? ')')" >> [](auto) { return "ParameterList"; }; // tested
-  g["Parameter"] << "(Expression)";
+  g["FunctionCall"] << "(Identifier ParameterList)" >> [](auto) { return "FunctionCall"; }; // tested twice
 
   // type
-  // TODO: waiting to expand type, not only the primitive data types
-  g["Type"] << "(PrimitiveType)";
-  // WARNING: potential bugs like auto&, auto*
-  g["PrimitiveType"] << "( (k_const)? (k_static)?"
-                        "(t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
-                        "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
-                        "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char"
-                        "| t_auto | t_size_t)"
-                        "(' '? ['*''&'])? )"; // tested
-
+  g["Type"] << "(PrimitiveType | STLType | AutoType)"; // tested twice
 
   // block: supported both versions of coding style
-  // DEBUG: no statement inside block!!!
+  // DEBUG: no statement inside block now!!!
   g["Block"] << "('\n'? '{' Indent '\n'? '}')" >> [](auto) { return "Block"; };
+
+  // TODO: allow *private*, *protected* and *public*
+  g["ClassBlock"] << "(Block)" >> [](auto) { return "ClassBlock"; };
 
   // TODO: do not support declaration after class block
   g["Class"] << "('class' Identifier ClassBlock? ';')" >> [](auto) { return "Class"; }; // tested
   g["Struct"] << "('struct' Identifier ClassBlock? ';')" >> [](auto) { return "Struct"; }; // tested
 
   // statement
-  g["Statement"] << "(DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | Typedef | Class | Struct | Block)" >> [](auto) { return "Statement"; };
+  g["Statement"] << "(DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | Typedef | Class | Struct | Block)"; // tested twice
 
-  g["LoopStatement"] << "(WhileLoop | DoWhileLoop | ForLoop)"; // tested
+  g["LoopStatement"] << "(WhileLoop | DoWhileLoop | ForLoop)"; // tested twice
 
   // g["Declaration"] << "Type Identifier ('=' (Identifier | MemberVariable | MemberMethod | Literal))?" >> [](auto) { return "Declaration"; };
   // declaration is where new variables are created
@@ -173,9 +175,6 @@ void config(Parser &g) {
     return "Declaration";
   };
   g["DeclarationStatement"] << "(Declaration ';')";
-
-  // TODO: add CharLiteral into Literal
-  g["Literal"] << "(StringLiteral | HexLiteral | OctLiteral | DecLiteral)";
 
   // condition, not in parentheses
   // TODO
@@ -216,12 +215,14 @@ void config(Parser &g) {
    **/
 
 
+  // TODO: add CharLiteral into Literal
+  g["Literal"] << "(StringLiteral | HexLiteral | OctLiteral | DecLiteral)";
   // expression
-  g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
-  g["Indexing"] << "(QualifiedConstant '[' QualifiedConstant ']')" >> [](auto) { return "Indexing"; };
-  g["Expression"] << "(FunctionCall | Indexing | QualifiedConstant)";
+  // g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
+  // g["Indexing"] << "(QualifiedConstant '[' QualifiedConstant ']')" >> [](auto) { return "Indexing"; };
+  // g["Expression"] << "(FunctionCall | Indexing | QualifiedConstant)";
 
   // starter
-  g.setStart(g["Program"] << "Test '\n'");
+  g.setStart(g["Program"] << "Expression '\n'");
   // int a = a;
 }
