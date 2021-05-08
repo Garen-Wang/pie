@@ -218,7 +218,7 @@ void config(Parser &g) {
   g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
   g["Expr_Level16"] << "(Literal | QualifiedConstant)";
 
-  g["Indexing"] << "(QualifiedConstant '[' Expr_Level15 ']')" >> [](auto) { return "Indexing"; };
+  g["Indexing"] << "(QualifiedConstant '[' Indent Expr_Level15 Indent ']')" >> [](auto) { return "Indexing"; };
   g["Parameter"] << "(Expr_Level15)"; // overload line 85
   g["Expr_Level15"] << "(Indexing | FunctionCall | Expr_Level16)";
 
@@ -236,7 +236,26 @@ void config(Parser &g) {
 
   g["Expr_Level13"] << "(PrefixIncrement | PrefixDecrement | Dereference | Negation | Expr_Level14)";
 
-  g["Expr"] << "(Expr_Level13)";
+  g["Multiplication"] << "(Expr_Level12 Indent '*' Indent Expr_Level12)" >> [](auto) { return "Multiplication"; };
+  g["Division"] << "(Expr_Level12 Indent '/' Indent Expr_Level12)" >> [](auto) { return "Division"; };
+  g["Remainder"] << "(Expr_Level12 Indent '%' Indent Expr_Level12)" >> [](auto) { return "Remainder"; };
+  g["Expr_Level12"] << "(Multiplication | Division | Remainder | Expr_Level13)";
+
+  g["Addition"] << "(Expr_Level11 Indent '+' Indent Expr_Level11)" >> [](auto) { return "Addition"; };
+  g["Substraction"] << "(Expr_Level11 Indent '-' Indent Expr_Level11)" >> [](auto) { return "Substraction"; };
+  g["Expr_Level11"] << "(Addition | Substraction | Expr_Level12)";
+
+  g["LeftShift"] << "(Expr_Level10 Indent '<<' Indent Expr_Level10)" >> [](auto) { return "LeftShift"; };
+  g["RightShift"] << "(Expr_Level10 Indent '>>' Indent Expr_Level10)" >> [](auto) { return "RightShift"; };
+  g["Expr_Level10"] << "(LeftShift | RightShift | Expr_Level11)";
+
+  g["LE"] << "(Expr_Level9 Indent '<' Indent Expr_Level9)" >> [](auto) { return "le"; };
+  g["LEQ"] << "(Expr_Level9 Indent '<=' Indent Expr_Level9)" >> [](auto) { return "leq"; };
+  g["GE"] << "(Expr_Level9 Indent '>' Indent Expr_Level9)" >> [](auto) { return "ge"; };
+  g["GEQ"] << "(Expr_Level9 Indent '>=' Indent Expr_Level9)" >> [](auto) { return "geq"; };
+  g["Expr_Level9"] << "(LE | LEQ | GE | GEQ | Expr_Level10)";
+
+  g["Expr"] << "(Expr_Level9)";
 
   // starter
   g.setStart(g["Program"] << "Expr '\n'");
