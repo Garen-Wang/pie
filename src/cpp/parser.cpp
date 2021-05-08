@@ -255,7 +255,27 @@ void config(Parser &g) {
   g["GEQ"] << "(Expr_Level9 Indent '>=' Indent Expr_Level9)" >> [](auto) { return "geq"; };
   g["Expr_Level9"] << "(LE | LEQ | GE | GEQ | Expr_Level10)";
 
-  g["Expr"] << "(Expr_Level9)";
+  g["EQ"] << "(Expr_Level8 Indent '==' Indent Expr_Level8)" >> [](auto) { return "EQ"; };
+  g["NEQ"] << "(Expr_Level8 Indent '!=' Indent Expr_Level8)" >> [](auto) { return "NEQ"; };
+  g["Expr_Level8"] << "(EQ | NEQ | Expr_Level9)";
+
+  g["LogicAND"] << "(Expr_Level4 Indent '&&' Indent Expr_Level4)" >> [](auto) { return "LogicAND"; };
+  g["Expr_Level4"] << "(LogicAND | Expr_Level8)";
+
+  g["LogicOR"] << "(Expr_Level3 Indent '||' Indent Expr_Level3)" >> [](auto) { return "LogicOR"; };
+  g["Expr_Level3"] << "(LogicOR | Expr_Level4)";
+  
+  g["PureAssignment"] << "(Expr_Level2 Indent '=' Indent Expr_Level2)" >> [](auto) { return "PureAssignment"; };
+  g["CompositeAssignment"] << "(Expr_Level2 Indent ([+*/%&|~^] | '-' | '<<' | '>>') '=' Indent Expr_Level2)" >> [](auto) { return "CompositeAssignment"; };
+  g["Conditional"] << "Expr_Level2 Indent '?' Indent Expr_Level2 Indent ':' Indent Expr_Level2" >> [](auto) { return "Conditional"; };
+  g["Expr_Level2"] << "(PureAssignment | CompositeAssignment | Conditional | Expr_Level3)";
+
+  g["ThrowException"] << "('throw' Indent Expr_Level2)" >> [](auto) { return "ThrowException"; };
+  g["Expr_Level1"] << "(ThrowException | Expr_Level2)";
+
+  g["Expr"] << "(Expr_Level1)";
+
+  // however, what if parentheses? what's the precedence of parentheses? what if nested parentheses?
 
   // starter
   g.setStart(g["Program"] << "Expr '\n'");
