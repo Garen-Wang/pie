@@ -82,7 +82,7 @@ void detail(Parser &g) {
   g["Argument"] << "(Identifier)";
 
   g["ParameterList"] << "('('( Parameter (',' Parameter)* )? ')')" >> [](auto) { return "ParameterList"; };
-  g["Parameter"] << "(Expression)";
+  // g["Parameter"] << "(Expr_Level15)"; // in expression test
 
   g["t_auto"] << "('auto')" >> [](auto) { return "auto"; };
   g["t_size_t"] << "('std::'? 'size_t')" >> [](auto) { return "size_t"; };
@@ -96,7 +96,7 @@ void detail(Parser &g) {
   g["STLType"] << "(('std::')? t_size_t)";
   g["AutoType"] << "(t_auto (' '? '&')?)";
 
-  g["ReturnStatement"] << "('return' Indent Expression ';')" >> [](auto) { return "ReturnStatement"; };
+  g["ReturnStatement"] << "('return' Indent Expr ';')" >> [](auto) { return "ReturnStatement"; };
 
   g["WhileLoop"] << "('while' Indent '(' Condition ')' Indent (('\n'? Statement? ';') | Block))"
   >> [](auto) {
@@ -107,7 +107,7 @@ void detail(Parser &g) {
   >> [](auto) {
     return "DoWhileLoop";
   }; // tested
-  g["ForLoop"] << "('for' Indent '(' Declaration? ';' ' '? Condition? ';' ' '? Expression? ')' Indent (('\n'? Indent Statement? ';') | Block))"
+  g["ForLoop"] << "('for' Indent '(' Declaration? ';' ' '? Condition? ';' ' '? Expr? ')' Indent (('\n'? Indent Statement? ';') | Block))"
   >> [](auto) {
     return "ForLoop";
   }; // tested
@@ -165,7 +165,7 @@ void config(Parser &g) {
   // g["Declaration"] << "Type Identifier ('=' (Identifier | MemberVariable | MemberMethod | Literal))?" >> [](auto) { return "Declaration"; };
   // declaration is where new variables are created
   // TODO: interact with variableTable in action
-  g["Declaration"] << "(Type Identifier Indent '=' Indent Expression)" >> [&](auto s) {
+  g["Declaration"] << "(Type Identifier Indent '=' Indent Expr)" >> [&](auto s) {
     // DEBUG
     std::cout << s[1].string() << std::endl;
 
@@ -178,13 +178,13 @@ void config(Parser &g) {
 
   // condition, not in parentheses
   // TODO
-  g["Condition"] << "(Expression)" >> [](auto) { return "Condition"; };
+  g["Condition"] << "(Expr)" >> [](auto) { return "Condition"; };
 
   // expression with built-in operators
   // expression without semicolon
   // TODO: simplification that expression = 'a'
   // WARNING: deprecated because it is substituded now
-  g["Expression"] << "('a')" >> [](auto) { return "Expression"; };
+  g["Expr"] << "('a')" >> [](auto) { return "Expr"; };
 
   g["Indent"] << "((' ')*)" >> [](auto) { return "Indent"; };
 
@@ -214,15 +214,31 @@ void config(Parser &g) {
    * rather than take the whole file into parsing
    **/
 
+  g["Literal"] << "(StringLiteral | CharLiteral | HexLiteral | OctLiteral | DecLiteral)";
+  g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
+  g["Expr_Level16"] << "(Literal | QualifiedConstant)";
 
-  // TODO: add CharLiteral into Literal
-  g["Literal"] << "(StringLiteral | HexLiteral | OctLiteral | DecLiteral)";
-  // expression
-  // g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
-  // g["Indexing"] << "(QualifiedConstant '[' QualifiedConstant ']')" >> [](auto) { return "Indexing"; };
-  // g["Expression"] << "(FunctionCall | Indexing | QualifiedConstant)";
+  g["Indexing"] << "(QualifiedConstant '[' Expr_Level15 ']')" >> [](auto) { return "Indexing"; };
+  g["Parameter"] << "(Expr_Level15)"; // overload line 85
+  g["Expr_Level15"] << "(Indexing | FunctionCall | Expr_Level16)";
+
+  g["PostfixIncrement"] << "(Expr_Level14 '++')" >> [](auto) { return "PostfixIncrement"; };
+  g["PostfixDecrement"] << "(Expr_Level14 '--')" >> [](auto) { return "PostfixDecrement"; };
+
+  g["StructureProjection"] << "(Expr_Level14 ('.' | '->') Expr_Level14)" >> [](auto) { return "StructureProjection"; };
+  g["Expr_Level14"] << "(StructureProjection | PostfixIncrement | PostfixDecrement | Expr_Level15)";
+
+  g["PrefixIncrement"] << "('++' Expr_Level14)" >> [](auto) { return "PrefixIncrement"; };
+  g["PrefixDecrement"] << "('--' Expr_Level14)" >> [](auto) { return "PrefixDecrement"; };
+
+  g["Dereference"] << "('*' Expr_Level13)" >> [](auto) { return "Dereference"; };
+  g["Negation"] << "('!' Expr_Level13)" >> [](auto) { return "Negation"; };
+
+  g["Expr_Level13"] << "(PrefixIncrement | PrefixDecrement | Dereference | Negation | Expr_Level14)";
+
+  g["Expr"] << "(Expr_Level13)";
 
   // starter
-  g.setStart(g["Program"] << "Expression '\n'");
+  g.setStart(g["Program"] << "Expr '\n'");
   // int a = a;
 }
