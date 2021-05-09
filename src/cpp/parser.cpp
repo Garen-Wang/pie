@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <peg_parser/generator.h>
 
@@ -17,26 +18,42 @@ VariableTable variableTable;
 TypeTable typeTable;
 
 void initTypeTable(Parser &g) {
-  typeTable.append("double", 1, g);
-  typeTable.append("float", 1, g);
-  typeTable.append("long double", 1, g);
-  typeTable.append("char", 1, g);
-  typeTable.append("int", 1, g);
-  typeTable.append("short", 1, g);
-  typeTable.append("long", 1, g);
-  typeTable.append("long long", 1, g);
-  typeTable.append("signed", 1, g);
-  typeTable.append("signed char", 1, g);
-  typeTable.append("signed int", 1, g);
-  typeTable.append("signed short", 1, g);
-  typeTable.append("signed long", 1, g);
-  typeTable.append("signed long long", 1, g);
+  // primitive data type
   typeTable.append("unsigned", 1, g);
   typeTable.append("unsigned char", 1, g);
   typeTable.append("unsigned int", 1, g);
   typeTable.append("unsigned short", 1, g);
   typeTable.append("unsigned long", 1, g);
+  typeTable.append("signed", 1, g);
+  typeTable.append("signed char", 1, g);
+  typeTable.append("signed int", 1, g);
+  typeTable.append("signed short", 1, g);
+  typeTable.append("signed long", 1, g);
+  typeTable.append("double", 1, g);
+  typeTable.append("float", 1, g);
+  typeTable.append("long double", 1, g);
+  typeTable.append("long long", 1, g);
+  typeTable.append("char", 1, g);
+  typeTable.append("int", 1, g);
+  typeTable.append("short", 1, g);
+  typeTable.append("long", 1, g);
   typeTable.append("unsigned long long", 1, g);
+  typeTable.append("signed long long", 1, g);
+
+  // STL
+  typeTable.append("vector", 2, g, true);
+  typeTable.append("map", 2, g, true);
+  typeTable.append("set", 2, g, true);
+  typeTable.append("unordered_map", 2, g, true);
+  typeTable.append("unordered_set", 2, g, true);
+  typeTable.append("string", 2, g);
+  typeTable.append("size_t", 2, g);
+  // to be continued
+
+  typeTable.update(g);
+
+  // variableTable.append("x", 1, g);
+  // variableTable.update(g);
 }
 
 void io(Parser &g) {
@@ -72,7 +89,10 @@ void detail(Parser &g) {
 
   // TODO: typedef will generate new type
   // TODO: store newly generated type to typeTable
-  g["Typedef"] << "('typedef' Type Identifier ';')" >> [](auto) { return "Typedef"; }; // tested
+  g["Typedef"] << "('typedef' Type Identifier ';')" >> [&](auto e) {
+    typeTable.append(e[1].string(), 3, g);
+    return "Typedef";
+  };
 
   g["k_const"] << "('const')" >> [](auto) { return "const"; };
   g["k_static"] << "('static')" >> [](auto) { return "static"; };
@@ -84,17 +104,10 @@ void detail(Parser &g) {
   g["ParameterList"] << "('('( Parameter (',' Parameter)* )? ')')" >> [](auto) { return "ParameterList"; };
   // g["Parameter"] << "(Expr_Level15)"; // in expression test
 
-  g["t_auto"] << "('auto')" >> [](auto) { return "auto"; };
-  g["t_size_t"] << "('std::'? 'size_t')" >> [](auto) { return "size_t"; };
+  g["TemplateList"] << "'<' (!AutoType Type) (',' Indent (!AutoType Type))* '>'" >> [](auto) { return "TemplateList"; }; // tested
 
-  // TODO: These three types should be created dynamically 
-  g["PrimitiveType"] << "( (k_const Indent)? (k_static Indent)?"
-                        "( t_long_long | t_long_double | t_int | t_short | t_long | t_char | t_double | t_float"
-                        "| t_signed_long_long | t_signed_int | t_signed_short | t_signed_long | t_signed_char"
-                        "| t_unsigned_long_long | t_unsigned_int | t_unsigned_short | t_unsigned_long | t_unsigned_char)"
-                        "(' '? ['*''&'])? )";
-  g["STLType"] << "(('std::')? t_size_t)";
-  g["AutoType"] << "(t_auto (' '? '&')?)";
+  g["AutoType"] << "('auto' (' '? '&')?)" >> [](auto) { return "AutoType"; };
+  // ManualType will be updated once *TypeTable.update* is invoked
 
   g["ReturnStatement"] << "('return' Indent Expr ';')" >> [](auto) { return "ReturnStatement"; };
 
@@ -119,7 +132,8 @@ void detail(Parser &g) {
   // TODO: char literal has bug here so temporarily deprecated
   // g["CharLiteral"] << "('\'')" >> [](auto) { return "CharLiteral"; };
  
-  g["DecLiteral"] << "('-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)?)" >> [](auto) { return "DecLiteral"; }; // including fraction, tested
+  // DexLiteral include fraction, scientific notation, etc. tested twice
+  g["DecLiteral"] << "('-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? ('0' | ([1-9][0-9]*)))?)" >> [](auto) { return "DecLiteral"; };
   g["HexLiteral"] << "('-'? '0x' ('0' | ([1-9a-fA-F][0-9a-fA-F]*)))" >> [](auto) { return "HexLiteral"; }; // tested
   g["OctLiteral"] << "('-'? '0' ('0' | ([1-7][0-7]*)))" >> [](auto) { return "OctLiteral"; }; // tested
 }
@@ -144,7 +158,7 @@ void config(Parser &g) {
   g["FunctionCall"] << "(Identifier ParameterList)" >> [](auto) { return "FunctionCall"; }; // tested twice
 
   // type
-  g["Type"] << "(PrimitiveType | STLType | AutoType)"; // tested twice
+  g["Type"] << "(ManualType | AutoType)"; // tested twice
 
   // block: supported both versions of coding style
   // DEBUG: no statement inside block now!!!
@@ -179,12 +193,6 @@ void config(Parser &g) {
   // condition, not in parentheses
   // TODO
   g["Condition"] << "(Expr)" >> [](auto) { return "Condition"; };
-
-  // expression with built-in operators
-  // expression without semicolon
-  // TODO: simplification that expression = 'a'
-  // WARNING: deprecated because it is substituded now
-  g["Expr"] << "('a')" >> [](auto) { return "Expr"; };
 
   g["Indent"] << "((' ')*)" >> [](auto) { return "Indent"; };
 
@@ -278,6 +286,6 @@ void config(Parser &g) {
   // however, what if parentheses? what's the precedence of parentheses? what if nested parentheses?
 
   // starter
-  g.setStart(g["Program"] << "Expr '\n'");
+  g.setStart(g["Program"] << "Type '\n'");
   // int a = a;
 }
