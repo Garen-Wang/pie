@@ -56,24 +56,6 @@ void initTypeTable(Parser &g) {
   // variableTable.update(g);
 }
 
-void io(Parser &g) {
-  std::string str, input;
-  while (true) {
-    std::getline(std::cin, str);
-    if (str == "q" || str == "quit") break;
-    // WARNING: check input string to prevent injection attack
-    if (str != "") input += str + '\n';
-    else break;
-  }
-  try {
-    auto output = g.run(input);
-    std::cout << "Parsing result: " << output << std::endl;
-    input.clear();
-  } catch (peg_parser::SyntaxError &error) {
-    std::cout << "Syntax error when parsing " << error.syntax->rule->name << std::endl;
-  }
-}
-
 void detail(Parser &g) {
   initTypeTable(g);
   g["SingleLineComment"] << "('//' (!'\n' .)*)" >> [](auto) { return "SingleLineComment"; };
