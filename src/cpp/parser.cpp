@@ -69,8 +69,6 @@ void detail(Parser &g) {
   g["Include_bracket"] << "('#include' Indent '<' ([a-zA-Z] | '.' | '/' | '_')+ '>')" >> [](auto) { return "Include_bracket"; };
   g["Include_quote"] << "('#include' Indent '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"')" >> [](auto) { return "Include_quote"; };
 
-  // TODO: typedef will generate new type
-  // TODO: store newly generated type to typeTable
   g["Typedef"] << "('typedef' Type Identifier ';')" >> [&](auto e) {
     typeTable.append(e[1].string(), 3, g);
     return "Typedef";
@@ -110,9 +108,6 @@ void detail(Parser &g) {
   g["StringLiteral"] << "('\"' (!'\"' .)* '\"')" >> [](auto) { return "StringLiteral"; };
   // TODO: potential bug, cannot recognize '\n', '\b', etc.
   g["CharLiteral"] << "([\'] ((!'\n' .) | (['\\']) ([a-z])) [\'])" >> [](auto) { return "CharLiteral"; };
-
-  // TODO: char literal has bug here so temporarily deprecated
-  // g["CharLiteral"] << "('\'')" >> [](auto) { return "CharLiteral"; };
  
   // DexLiteral include fraction, scientific notation, etc. tested twice
   g["DecLiteral"] << "('-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? ('0' | ([1-9][0-9]*)))?)" >> [](auto) { return "DecLiteral"; };
