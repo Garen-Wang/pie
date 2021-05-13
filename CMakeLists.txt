@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.14)
 
 # add dependency
 include(cmake/CPM.cmake)
@@ -22,6 +22,20 @@ target_include_directories(cpp_parser
 
 
 target_link_libraries(cpp_parser PEGParser::PEGParser)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+# python parser
+project(python_poc)
+
+add_executable(python_poc
+  src/python/poc.cpp
+)
+
+target_include_directories(python_poc
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(python_poc PEGParser::PEGParser)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # python parser
