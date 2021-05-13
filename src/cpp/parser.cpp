@@ -64,10 +64,12 @@ void detail(Parser &g) {
   g["Include"] << "(Include_bracket | Include_quote)" >> [](auto) { return "Include"; };
   g["Ifdef"] << "('#ifdef' Indent Identifier)" >> [](auto) { return "Ifdef"; };
   g["Ifndef"] << "('#ifndef' Indent Identifier)" >> [](auto) { return "Ifndef"; };
+  g["Endif"] << "('#endif')" >> [](auto) { return "Endif"; };
   g["Define"] << "('#define' Indent Identifier (Indent Identifier)?)" >> [](auto) { return "Define"; };
   g["Pragma"] << "('#pragma' Indent (!'\n' !';' .)+)" >> [](auto) { return "Pragma"; };
   g["Include_bracket"] << "('#include' Indent '<' ([a-zA-Z] | '.' | '/' | '_')+ '>')" >> [](auto) { return "Include_bracket"; };
   g["Include_quote"] << "('#include' Indent '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"')" >> [](auto) { return "Include_quote"; };
+  g["Using"] << "('using' Indent ((Identifier Indent '=' Indent QualifiedConstant) | ('namespace' Indent Identifier) | QualifiedConstant) ';')" >> [](auto) { return "using"; };
 
   g["Typedef"] << "('typedef' Type Identifier ';')" >> [&](auto e) {
     typeTable.append(e[1].string(), 3, g);
@@ -113,6 +115,7 @@ void detail(Parser &g) {
   g["DecLiteral"] << "('-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? ('0' | ([1-9][0-9]*)))?)" >> [](auto) { return "DecLiteral"; };
   g["HexLiteral"] << "('-'? '0x' ('0' | ([1-9a-fA-F][0-9a-fA-F]*)))" >> [](auto) { return "HexLiteral"; }; // tested
   g["OctLiteral"] << "('-'? '0' ('0' | ([1-7][0-7]*)))" >> [](auto) { return "OctLiteral"; }; // tested
+  g["BoolLiteral"] << "('true' | 'false')" >> [](auto) { return "BoolLiteral"; };
 }
 
 void config(Parser &g) {
@@ -127,7 +130,7 @@ void config(Parser &g) {
   g["Comment"] << "(SingleLineComment | MultiLineComment)"; // tested twice
 
   // preprocessing
-  g["Preprocessing"] << "(Include | Ifdef | Ifndef | Define | Pragma)"; // tested twice
+  g["Preprocessing"] << "(Include | Ifdef | Ifndef | Endif | Define | Pragma)"; // tested twice
 
   // function declaration and definition
   g["Function"] << "(('inline')? Type Identifier ArgumentList (';' | Block))" >> [](auto) { return "Function"; }; // tested twice
@@ -137,59 +140,47 @@ void config(Parser &g) {
   // type
   g["Type"] << "(ManualType | AutoType)"; // tested twice
 
-  // block: supported both versions of coding style
-  // DEBUG: no statement inside block now!!!
-  g["Block"] << "('\n'? '{' Indent '\n'? '}')" >> [](auto) { return "Block"; };
-
-  // TODO: allow *private*, *protected* and *public*
-  g["ClassBlock"] << "(Block)" >> [](auto) { return "ClassBlock"; };
-
   // TODO: do not support declaration after class block
   g["Class"] << "('class' Identifier ClassBlock? ';')" >> [](auto) { return "Class"; }; // tested
   g["Struct"] << "('struct' Identifier ClassBlock? ';')" >> [](auto) { return "Struct"; }; // tested
 
   // statement
-  g["Statement"] << "(DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | Typedef | Class | Struct | Block)"; // tested twice
+  g["Statement"] << "(DeclarationStatement | ReturnStatement | LoopStatement | ControlStatement | ExprStatement | Typedef | Class | Struct | Block | Using)"; // tested twice
 
   g["LoopStatement"] << "(WhileLoop | DoWhileLoop | ForLoop)"; // tested twice
+  g["ExprStatement"] << "(ExprList ';')";
 
   // g["Declaration"] << "Type Identifier ('=' (Identifier | MemberVariable | MemberMethod | Literal))?" >> [](auto) { return "Declaration"; };
   // declaration is where new variables are created
   // TODO: interact with variableTable in action
-  g["Declaration"] << "(Type Identifier Indent '=' Indent Expr)" >> [&](auto s) {
-    // DEBUG
-    std::cout << s[1].string() << std::endl;
-
-    variableTable.append(s[1].string(), 3, g);
-    std::cout << "in Declaration" << std::endl;
-    variableTable.debug();
+  g["Declaration"] << "(Type Identifier (Indent '=' Indent Expr)? (',' Indent Identifier (Indent '=' Indent Expr)?)*)" >> [&](auto s) {
+    // variableTable.append(s[1].string(), 3, g);
+    // std::cout << "in Declaration" << std::endl;
+    // variableTable.debug();
     return "Declaration";
   };
   g["DeclarationStatement"] << "(Declaration ';')";
 
   // condition, not in parentheses
-  // TODO
   g["Condition"] << "(Expr)" >> [](auto) { return "Condition"; };
 
   g["Indent"] << "((' ')*)" >> [](auto) { return "Indent"; };
 
-  // g["ControlStatement"] << "'if' '(' Condition ')' ('\n'? Statement? ';' | Block) ('else' 'if' '(' Condition ')' ('\n'? Statement? ';' | Block))* ('else' ('\n'? Statement? ';' | Block))?";
-  g["ControlStatement"] << "('if' Indent '(' Condition ')' (('\n'? Indent Statement? ';') | Block)"
-                           " (['\n' ]* 'else if' Indent '(' Condition ')' (('\n'? Indent Statement? ';') | Block))*"
-                           " (['\n' ]* 'else' Indent (('\n'? Indent Statement? ';') | Block))+)"
+  g["ControlStatement"] << "('if' Indent '(' Condition ')' (('\n'? Indent (Statement | ';')) | Block)"
+                           " (['\n' ]* 'else if' Indent '(' Condition ')' (('\n'? Indent (Statement | ';')) | Block))*"
+                           " (['\n' ]* 'else' Indent (('\n'? Indent (Statement | ';')) | Block))+)"
   >> [](auto) {
     return "ControlStatement";
   }; // tested
-
 
   // TODO: check whether the identifier is in variableTable through action
   g["DefinedVariable"] << "(Identifier)" << [&](auto s) -> bool {
     auto name = s->inner[0]->string();
 
     // DEBUG
-    std::cout << "in DefinedVariable" << std::endl;
-    std::cout << name << std::endl;
-    variableTable.debug();
+    // std::cout << "in DefinedVariable" << std::endl;
+    // std::cout << name << std::endl;
+    // variableTable.debug();
 
     return variableTable.check(name);
   } >> [](auto) { return "DefinedVariable"; };
@@ -199,7 +190,7 @@ void config(Parser &g) {
    * rather than take the whole file into parsing
    **/
 
-  g["Literal"] << "(StringLiteral | CharLiteral | HexLiteral | OctLiteral | DecLiteral)";
+  g["Literal"] << "(StringLiteral | CharLiteral | HexLiteral | OctLiteral | DecLiteral | BoolLiteral)";
   g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
   g["Expr_Level16"] << "(Literal | QualifiedConstant)";
 
@@ -260,9 +251,20 @@ void config(Parser &g) {
 
   g["Expr"] << "(Expr_Level1)";
 
+  g["ExprList"] << "(Expr (',' Indent Expr)*)";
+
   // however, what if parentheses? what's the precedence of parentheses? what if nested parentheses?
 
-  // starter
-  g.setStart(g["Program"] << "Type '\n'");
-  // int a = a;
+  // block: supported both versions of coding style
+  // DEBUG: no statement inside block now!!!
+  g["Block"] << "('\n'? '{' Indent '\n'?  Program   '}')" >> [](auto) { return "Block"; };
+
+  // TODO: allow *private*, *protected* and *public*
+  g["ClassBlock"] << "(Block)" >> [](auto) { return "ClassBlock"; };
+
+  // g["Program"] << "(Comment | (Preprocessing '\n') | (Function '\n') | (Statement Indent Comment? '\n'?) | '\n')*";
+
+  // g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function | Statement) Indent SingleLineComment? '\n'))*)";
+  g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function | Statement) Indent SingleLineComment? '\n') | ((Statement Indent)+ SingleLineComment? '\n'))*)";
+  g.setStart(g["Program"]);
 }
