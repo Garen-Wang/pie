@@ -27,7 +27,7 @@ void io(Parser &g, const std::string &inputFile) {
       if (str == "q" || str == "quit") break;
       // WARNING: check input string to prevent injection attack
       if (str != "") input += str + '\n';
-      else break;
+      // else break;
     }
   }
   // DEBUG
