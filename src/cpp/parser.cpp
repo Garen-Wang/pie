@@ -1,10 +1,26 @@
 #include <iostream>
+#include <algorithm>
 #include <peg_parser/generator.h>
 
 #include "table.cpp"
 
 VariableTable variableTable;
 TypeTable typeTable;
+std::string sourceCode;
+std::vector<std::size_t> idPrefixSum;
+
+int getLineNumber(std::size_t n) {
+  return int(std::count(sourceCode.begin(), sourceCode.begin() + n, '\n') + 1);
+}
+
+void getPrefixSum(std::vector<std::size_t> &positions) {
+  positions.push_back(0);
+  std::size_t pos = sourceCode.find('\n', 0);
+  while (pos != std::string::npos) {
+    positions.push_back(pos);
+    pos = sourceCode.find('\n', pos + 1);
+  }
+}
 
 void initTypeTable(Parser &g) {
   // primitive data type
@@ -55,73 +71,295 @@ void initTypeTable(Parser &g) {
   // variableTable.update(g);
 }
 
+void addKeywords(Parser &g) {
+  // markers
+  g["m_SLCommentHead"] << "'//'";
+  g["m_MLCommentHead"] << "'/*'";
+  g["m_MLCommentTail"] << "'*/'";
+  g["m_hash"] << "('#')";
+  g["m_langle"] << "('<')";
+  g["m_rangle"] << "('>')";
+  g["m_singleQuotes"] << "([\'])";
+  g["m_doubleQuotes"] << "('\"')";
+  g["m_assign"] << "('=')";
+  g["m_semicolon"] << "(';')";
+  // keywords
+  g["k_ifdef"] << "('ifdef')";
+  g["k_ifndef"] << "('ifndef')";
+  g["k_endif"] << "('endif')";
+  g["k_define"] << "('define')";
+  g["k_pragma"] << "('pragma')";
+  g["k_include"] << "('include')";
+  g["k_using"] << "('using')";
+  g["k_namespace"] << "('namespace')";
+  g["k_typedef"] << "('typedef')";
+  g["k_const"] << "('const')";
+  g["k_static"] << "('static')";
+  g["k_return"] << "('return')";
+  g["k_while"] << "('while')" >> [](auto) { return "while"; };
+  g["k_do"] << "('do')";
+  g["k_for"] << "('for')";
+  g["k_if"] << "('if')";
+  g["k_else_if"] << "('else if')";
+  g["k_else"] << "('else')";
+  g["k_auto"] << "('auto')";
+}
+
 void detail(Parser &g) {
   initTypeTable(g);
-  g["SingleLineComment"] << "('//' (!'\n' .)*)" >> [](auto) { return "SingleLineComment"; };
-  g["MultiLineComment"] << "('/*'  (!'*' .)* '*/')" >> [](auto) { return "MultiLineComment"; };
-
-  g["Include"] << "(Include_bracket | Include_quote)" >> [](auto) { return "Include"; };
-  g["Ifdef"] << "('#ifdef' Indent Identifier)" >> [](auto) { return "Ifdef"; };
-  g["Ifndef"] << "('#ifndef' Indent Identifier)" >> [](auto) { return "Ifndef"; };
-  g["Else"] << "('#else')" >> [](auto) { return "Else"; };
-  g["Endif"] << "('#endif')" >> [](auto) { return "Endif"; };
-  g["Define"] << "('#define' Indent Identifier (Indent Identifier)?)" >> [](auto) { return "Define"; };
-  g["Pragma"] << "('#pragma' Indent (!'\n' !';' .)+)" >> [](auto) { return "Pragma"; };
-  g["Include_bracket"] << "('#include' Indent '<' ([a-zA-Z] | '.' | '/' | '_')+ '>')" >> [](auto) { return "Include_bracket"; };
-  g["Include_quote"] << "('#include' Indent '\"' ([a-zA-Z] | '.' | '/' | '_')+ '\"')" >> [](auto) { return "Include_quote"; };
-  g["Using"] << "('using' Indent ((Identifier Indent '=' Indent QualifiedConstant) | ('namespace' Indent Identifier) | QualifiedConstant) ';')" >> [](auto) { return "using"; };
-
-  g["Typedef"] << "('typedef' Type Identifier ';')" >> [&](auto e) {
-    typeTable.append(e[1].string(), 3, g);
-    // DEBUG
-    std::cout << e[1].string() << " is added into typeTable." << std::endl;
-    return "Typedef";
+  addKeywords(g);
+  g["SingleLineComment"] << "(m_SLCommentHead (!'\n' .)*)" >> [](auto s) {
+    std::cout << "This is SingleLineComment" << std::endl;
+    int line = getLineNumber(s.position() + 2);
+    int startPos = s.position() + 2 - idPrefixSum[line - 1];
+    int endPos = s.position() + s.length() - idPrefixSum[line - 1];
+    std::cout << "line " << line << std::endl;
+    std::cout << "comment interval: from " << startPos << " to " << endPos << std::endl;
+    // changeAttr(attr, s.position(), s.position() + s.length());
+    return "SingleLineComment";
+  };
+  g["MultiLineComment"] << "(m_MLCommentHead (!'*/' .)* m_MLCommentTail)" >> [](auto s) {
+    std::cout << "This is MultiLineComment" << std::endl;
+    int startLine = getLineNumber(s[0].position() + 2);
+    int endLine = getLineNumber(s[1].position() - 1);
+    int startPos = s[0].position() + 2 - idPrefixSum[startLine - 1];
+    int endPos = s[1].position() - 1 - idPrefixSum[endLine - 1];
+    std::cout << "comment interval: from line " << startLine << " to " << endLine << std::endl;
+    std::cout << "comment interval: from " << startPos << " to " << endPos << std::endl;
+    // changeAttr(attr, s.position(), s.position() + s.length());
+    // italic grey
+    return "MultiLineComment";
   };
 
-  g["k_const"] << "('const')" >> [](auto) { return "const"; };
-  g["k_static"] << "('static')" >> [](auto) { return "static"; };
+  g["Ifdef"] << "(m_hash k_ifdef Identifier)" >> [](auto s) {
+    std::cout << "This is Ifdef" << std::endl;
+    int line = getLineNumber(s[0].position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'#ifdef' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[1].position() + s[1].length() - idPrefixSum[line - 1] << std::endl;
+    std::cout << "Identifier is from " << s[3].position() - idPrefixSum[line - 1]
+              << " to " << s[3].position() + s[3].length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr1, s[0].position(), s[1].position() + s[1].length());
+    // shallow yellow
+    // changeAttr(attr2, s[3].position(), s[3].position() + s[3].length());
+    // bold cyan
+    return "Ifdef";
+  };
 
-//  g["ArgumentType"] << "( (k_const Indent)? (k_static Indent)? Typename (' '? ['*''&'])?)" >> [&](auto s) {
-//    return s[s.size() - 1].string();
-//  };
+  g["Ifndef"] << "(m_hash k_ifndef Indent Identifier)" >> [](auto s) {
+    std::cout << "This is Ifndef" << std::endl;
+    int line = getLineNumber(s[0].position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'#ifndef' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[1].position() + s[1].length() - idPrefixSum[line - 1] << std::endl;
+    std::cout << "Identifier is from " << s[3].position() - idPrefixSum[line - 1]
+              << " to " << s[3].position() + s[3].length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr1, s[0].position(), s[1].position() + s[1].length());
+    // shallow yellow
+    // changeAttr(attr2, s[3].position(), s[3].position() + s[3].length());
+    // bold cyan
+    return "Ifndef";
+  };
+  g["Else"] << "(m_hash k_else)" >> [](auto s) {
+    std::cout << "This is Else" << std::endl;
+    int line = getLineNumber(s[0].position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'#else' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[1].position() + s[1].length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr, s.position(), s.position() + s.length());
+    // shallow yellow
+    return "Else";
+  };
+
+  g["Endif"] << "(m_hash k_endif)" >> [](auto s) {
+    std::cout << "This is Endif" << std::endl;
+    int line = getLineNumber(s[0].position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'#else' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[1].position() + s[1].length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr, s.position(), s.position() + s.length());
+    // shallow yellow
+    return "Endif";
+  };
+
+  g["Define"] << "(m_hash k_define Indent Identifier (Indent Identifier)?)" >> [](auto s) {
+    // WARNING: Only support basic usage of `define' directives
+    std::cout << "This is Define" << std::endl;
+    int line = getLineNumber(s.position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'#define' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[1].position() + s[1].length() - idPrefixSum[line - 1] << std::endl;
+    std::cout << "Identifier1 is from " << s[3].position() - idPrefixSum[line - 1]
+              << " to " << s[3].position() + s[3].length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr1, s[0].position(), s[1].position() + s[1].length());
+    // italic grey
+    // changeAttr(attr2, s[3].position(), s[3].position() + s[3].length());
+    // Bold grey
+    if (s.size() == 6) {
+      std::cout << "Identifier2 is from " << s[5].position() - idPrefixSum[line - 1]
+                << " to " << s[5].position() + s[5].length() - idPrefixSum[line - 1] << std::endl;
+      // changeAttr(attr3, s[5].position(), s[5].position() + s[5].length());
+      // grey
+    }
+    return "Define";
+  };
+
+  g["Pragma"] << "(m_hash k_pragma Indent (!'\n' .)+)" >> [](auto s) {
+    std::cout << "This is Pragma" << std::endl;
+    int line = getLineNumber(s.position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'#pragma' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[1].position() + s[1].length() - idPrefixSum[line - 1] << std::endl;
+    std::cout << "other is from " << s[2].position() + s[2].length() - idPrefixSum[line - 1]
+              << " to " << s.position() + s.length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr1, s[0].position(), s[1].position() + s[1].length());
+    // shallow yellow
+    // changeAttr(attr2, s[2].position() + s[2].length(), s.position() + s.length());
+    // default
+    return "Pragma";
+  };
+  g["Include"] << "(m_hash k_include Indent ((m_langle ([a-zA-Z] | '.' | '/' | '_')+ m_rangle) | (m_doubleQuotes ([a-zA-Z] | '.' | '/' | '_')+ m_doubleQuotes)))" >> [](auto s) {
+    std::cout << "This is Include" << std::endl;
+    int line = getLineNumber(s.position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'#include' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[1].position() + s[1].length() - idPrefixSum[line - 1] << std::endl;
+    std::cout << "header file is from " << s[3].position() - idPrefixSum[line - 1]
+              << " to " << s[4].position() + s[4].length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr1, s[0].position(), s[1].position() + s[1].length());
+    // shallow yellow
+    // changeAttr(attr2,s[3].position(), s[4].position() + s[4].length());
+    // green
+    return "Include";
+  };
+  g["UsingNamespace"] << "(k_using Indent k_namespace Indent Identifier m_semicolon)" >> [](auto s) {
+    std::cout << "This is UsingNamespace" << std::endl;
+    int line = getLineNumber(s.position());
+    std::cout << "line " << line << std::endl;
+    std::cout << "'using' is from " << s[0].position() - idPrefixSum[line - 1]
+              << " to " << s[0].position() + s[0].length() - idPrefixSum[line - 1] << std::endl;
+    std::cout << "'namespace' is from " << s[2].position() - idPrefixSum[line - 1]
+              << " to " << s[2].position() + s[2].length() - idPrefixSum[line - 1] << std::endl;
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // blue
+    // changeAttr(attr2, s[2].position(), s[2].position() + s[2].length());
+    // cyan
+    return "UsingNamespace";
+  };
+  g["UsingAssignment"] << "(k_using Indent Identifier Indent m_assign Indent QualifiedConstant m_semicolon)" >> [](auto s) {
+    // using attr = std::string::size_type;
+    std::cout << "This is UsingAssignment" << std::endl;
+    int line = getLineNumber(s.position());
+    std::cout << "line " << line << std::endl;
+
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // blue
+    // changeAttr(attr2, s[2].position(), s[2].position() + s[2].length());
+    // purple
+    // changeAttr(attr3, s[6].position(), s[6].position() + s[6].length());
+    // purple
+    return "UsingAssignment";
+  };
+  g["UsingClass"] << "(k_using Indent QualifiedConstant m_semicolon)" >> [](auto s) {
+    std::cout << "This is UsingClass" << std::endl;
+    int line = getLineNumber(s.position());
+    std::cout << "line " << line << std::endl;
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // blue
+    // changeAttr(attr2, s[2].position(), s[2].position() + s[2].length());
+    // default
+    return "UsingClass";
+  };
+  //  g["Using"] << "(k_using Indent ((Identifier Indent '=' Indent QualifiedConstant) | ('namespace' Indent Identifier) | QualifiedConstant) ';')" >> [](auto) { return "using"; };
+  g["Using"] << "(UsingNamespace | UsingAssignment | UsingClass)" >> [](auto s) { return s[0].evaluate(); };
+
+  g["Typedef"] << "(k_typedef Type Identifier ';')" >> [&](auto s) {
+    std::cout << "This is Typedef" << std::endl;
+    int line = getLineNumber(s.position());
+    typedef std::vector<double> gala;
+    typeTable.append(s[1].string(), 3, g);
+    std::cout << s[1].string() << " is added into typeTable." << std::endl;
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // blue
+
+    // Type has its own way to change Attr
+    // s[1].evaluate();
+    // changeAttr(attr2, s[2].position(), s[2].position() + s[2].position());
+    // purple
+    return "Typedef";
+  };
   g["ArgumentList"] << "'(' (Type Indent Argument (', ' Type Indent Argument)*)? ')'"
     >> [&](auto s) {
+      std::cout << "This is ArgumentList" << std::endl;
       for (int i = 0; i < s.size(); i += 3) {
-        // DEBUG
-        std::cout << s[i].evaluate() << std::endl;
+        // Type has its own way to change Attr
+        std::cout << "argument " << (i / 3) + 1 << "'s type is " << s[i].evaluate() << std::endl;
+        // changeAttr(attr2, s[i + 2].position(), s[i + 2].position() + s[i + 2].length());
+        // default
       }
       return "ArgumentList"; 
   };
   g["Argument"] << "(Identifier)";
 
-  g["ParameterList"] << "('('( Parameter (',' Parameter)* )? ')')" >> [](auto) { return "ParameterList"; };
-  // g["Parameter"] << "(Expr_Level15)"; // in expression test
+  g["ParameterList"] << "('('( Parameter (',' Parameter)* )? ')')" >> [](auto s) {
+    std::cout << "This is ParameterList" << std::endl;
+    // evaluate
+    return "ParameterList";
+  };
 
-  g["TemplateList"] << "'<' ManualType (',' Indent ManualType)* '>'" >> [](auto) { return "TemplateList"; }; // tested
+  g["TemplateList"] << "'<' ManualType (',' Indent ManualType)* '>'" >> [](auto s) {
+    std::cout << "This is TemplateList" << std::endl;
+    // evaluate
+    return "TemplateList";
+  };
 
-  g["AutoType"] << "('auto' (' '? '&')?)" >> [](auto) { return "AutoType"; };
-  // ManualType will be updated once *TypeTable.update* is invoked
+  g["AutoType"] << "((k_const Indent)? k_auto (' '? '&')?)" >> [](auto s) {
+    std::cout << "This is AutoType" << std::endl;
+    return "AutoType";
+  };
 
-  g["ReturnStatement"] << "('return' Indent Expr ';')" >> [](auto) { return "ReturnStatement"; };
-  g["WhileLoop"] << "('while' Indent '(' Condition ')' ['\n''\t' ]* ((Statement | ';') | Block))"
-  >> [](auto) {
+  g["ReturnStatement"] << "(k_return Indent Expr m_semicolon)" >> [](auto s) {
+    std::cout << "This is ReturnStatement" << std::endl;
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // blue
+    // s[2].evaluate();
+    return "ReturnStatement";
+  };
+
+  g["WhileLoop"] << "(k_while Indent '(' Condition ')' ['\n''\t' ]* ((Statement | m_semicolon) | Block))"
+  >> [](auto s) {
+    std::cout << "This is WhileLoop" << std::endl;
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // blue
     return "WhileLoop";
-  }; // tested
-  g["DoWhileLoop"] << "('do' ['\n''\t' ]* ((Statement | ';') | Block)"
-                      "['\n''\t' ]* 'while' Indent '(' Condition ')' ' '? ';')"
-  >> [](auto) {
+  };
+
+  g["DoWhileLoop"] << "(k_do ['\n''\t' ]* ((Statement | m_semicolon) | Block)"
+                      "['\n''\t' ]* k_while Indent '(' Condition ')' ' '? m_semicolon)"
+  >> [](auto s) {
+    // std::cout << s[2].evaluate() << std::endl;
+    std::cout << "This is DoWhileLoop" << std::endl;
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // changeAttr(attr1, s[2].position(), s[2].position() + s[2].length());
+    // blue
     return "DoWhileLoop";
-  }; // tested
-  g["ForLoop"] << "('for' Indent '(' Declaration? ';' ' '? Condition? ';' ' '? Expr? ')' ['\n''\t' ]* ((Statement | ';') | Block))"
+  };
+
+  g["ForLoop"] << "(k_for Indent '(' Declaration? m_semicolon ' '? Condition? m_semicolon ' '? Expr? ')' ['\n''\t' ]* ((Statement | m_semicolon) | Block))"
   >> [](auto) {
+    std::cout << "This is ForLoop" << std::endl;
+    // changeAttr(attr1, s[0].position(), s[0].position() + s[0].length());
+    // blue
     return "ForLoop";
-  }; // tested
+  };
+
+  // tomorrow start up here!!!!!
 
   // StringLiteral now support string concat in neighboring lines
   g["StringLiteral"] << "('\"' (!'\"' !'\n' .)* '\"' ('\n' Indent '\"' (!'\"' !'\n' .)* '\"')*)" >> [](auto) { return "StringLiteral"; };
   // TODO: potential bug, cannot recognize '\n', '\b', etc.
   g["CharLiteral"] << "([\'] ((!'\n' .) | (['\\']) ([a-z])) [\'])" >> [](auto) { return "CharLiteral"; };
- 
+
   // DexLiteral include fraction, scientific notation, etc. tested twice
   g["DecLiteral"] << "('-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? ('0' | ([1-9][0-9]*)))?)" >> [](auto) { return "DecLiteral"; };
   g["HexLiteral"] << "('-'? '0x' ('0' | ([1-9a-fA-F][0-9a-fA-F]*)))" >> [](auto) { return "HexLiteral"; }; // tested
@@ -281,8 +519,8 @@ void config(Parser &g) {
   g["TypeCheck"] << "" << [](auto) { return typeTable.check(); } >> [](auto) { return "TypeCheck"; };
 
    g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function) Indent SingleLineComment? '\n') | ((Statement Indent)+ SingleLineComment? '\n'))*)";
-   g.setStart(g["Program"]);
-//   g["Test"] << "'(' ArgumentType Argument (', ' ArgumentType Argument)* ')' '\n'";
-//   g["Test"] << "IfStatement '\n'";
+//   g.setStart(g["Program"]);
+//  g["Function"] << "(('inline')? Type Identifier ArgumentList ['\n''\t' ]* (';' | Block))" >> [](auto) { return "Function"; }; // tested twice
+//   g["Test"] << "Function '\n'";
 //   g.setStart(g["Test"]);
 }

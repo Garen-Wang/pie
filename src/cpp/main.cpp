@@ -6,6 +6,7 @@
 #include <sstream>
 #include "parser.cpp"
 
+
 Parser generate() {
   Parser g;
   config(g);
@@ -30,6 +31,12 @@ void io(Parser &g, const std::string &inputFile) {
     }
   }
   try {
+    sourceCode = input;
+    // should have been in parser.cpp
+    getPrefixSum(idPrefixSum);
+    // DEBUG
+    for (auto x : idPrefixSum) std::cout << x << std::endl;
+
     auto output = g.run(input);
     std::cout << "Parsing result: " << output << std::endl;
     input.clear();
