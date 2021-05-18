@@ -51,3 +51,17 @@ target_include_directories(python_parser
 )
 target_link_libraries(python_parser PEGParser::PEGParser)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+# shl
+project(shl)
+
+add_executable(shl
+    src/shl/main.cpp
+    )
+
+target_include_directories(shl
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    )
+target_link_libraries(shl PEGParser::PEGParser)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
