@@ -283,6 +283,6 @@ void config(Parser &g) {
    g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function) Indent SingleLineComment? '\n') | ((Statement Indent)+ SingleLineComment? '\n'))*)";
    g.setStart(g["Program"]);
 //   g["Test"] << "'(' ArgumentType Argument (', ' ArgumentType Argument)* ')' '\n'";
-//  g["Test"] << "IfStatement '\n'";
-//  g.setStart(g["Test"]);
+//   g["Test"] << "IfStatement '\n'";
+//   g.setStart(g["Test"]);
 }

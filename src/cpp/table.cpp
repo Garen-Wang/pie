@@ -90,16 +90,16 @@ class TypeTable {
       std::string subexpr = "(";
       bool first = true;
       std::vector<std::string> types, innertypes;
-      for (auto it : typeTable) {
+      for (const auto& it : typeTable) {
         types.push_back(it.first);
         if (it.second == 4) innertypes.push_back(it.first);
       }
       // subtypes inside STL
-      for (auto it : typeTable) {
+      for (const auto& it : typeTable) {
         if (it.second == 5) {
           std::string _type = it.first;
           std::replace(_type.begin(), _type.end(), ' ', '_');
-          for (auto innertype : innertypes) {
+          for (const auto& innertype : innertypes) {
             // DEBUG
             // std::cout << ("'std::" + it.first + "'" + " Indent TemplateList" + " '::" + innertype + "'") << std::endl;
 
@@ -108,8 +108,8 @@ class TypeTable {
           }
         }
       }
-      std::sort(types.begin(), types.end(), [](std::string a, std::string b) { return a.length() > b.length(); });
-      for (auto it : types) {
+      std::sort(types.begin(), types.end(), [](const std::string& a, const std::string& b) { return a.length() > b.length(); });
+      for (const auto& it : types) {
         // DEBUG
         // std::cout << it << std::endl;
         if (first) first = false;
@@ -121,20 +121,19 @@ class TypeTable {
       subexpr += ")";
 
       // DEBUG
-      // std::cout << "subexpr: " << subexpr << std::endl;
-      // g["SubType"] << subexpr;
-      // g["ManualType"] << "( (k_const Indent)? (k_static Indent)? SubType (' '? ['*''&'])?)" >> [](auto e) { return e[e.size() - 1].string(); };
-      
+//      std::cout << "subexpr: " << subexpr << std::endl;
+//      g["SubType"] << subexpr;
+//      g["ManualType"] << "( (k_const Indent)? (k_static Indent)? SubType (' '? ['*''&'])?)" >> [](auto e) { return e[e.size() - 1].string(); };
     }
     bool check() {
-      for (auto it : typeTable) {
+      for (const auto& it : typeTable) {
         if (it.second == 0) return false;
       }
       return true;
     }
     void debug() {
       std::cout << "--- DEBUGING ---" << std::endl;
-      for (auto it : typeTable) {
+      for (const auto& it : typeTable) {
         std::cout << it.first << ": " << it.second << std::endl;
       }
       std::cout << "--- DEBUGING ---" << std::endl;
