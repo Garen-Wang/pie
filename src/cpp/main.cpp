@@ -1,7 +1,6 @@
 #include <cstring>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
@@ -30,8 +29,6 @@ void io(Parser &g, const std::string &inputFile) {
       // else break;
     }
   }
-  // DEBUG
-  // std::cout << input << std::endl;
   try {
     auto output = g.run(input);
     std::cout << "Parsing result: " << output << std::endl;

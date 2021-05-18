@@ -1,5 +1,4 @@
 #include <iostream>
-#include <string>
 #include <peg_parser/generator.h>
 
 #include "table.cpp"
@@ -29,6 +28,7 @@ void initTypeTable(Parser &g) {
   typeTable.append("long", 1, g);
   typeTable.append("unsigned long long", 1, g);
   typeTable.append("signed long long", 1, g);
+  typeTable.append("bool", 1, g);
 
   // STL
   typeTable.append("string", 2, g);
@@ -43,6 +43,9 @@ void initTypeTable(Parser &g) {
   // subtype in STL
   typeTable.append("size_type", 4, g);
   typeTable.append("iterator", 4, g);
+
+  // user-defined data types
+  typeTable.append("Student_info", 3, g);
 
   // to be continued
 
@@ -78,8 +81,17 @@ void detail(Parser &g) {
   g["k_const"] << "('const')" >> [](auto) { return "const"; };
   g["k_static"] << "('static')" >> [](auto) { return "static"; };
 
-  // argument list (with lparen and rparent)
-  g["ArgumentList"] << "('(' (Type Argument? (',' Type Argument?)*)? ')')" >> [](auto) { return "ArgumentList"; };
+//  g["ArgumentType"] << "( (k_const Indent)? (k_static Indent)? Typename (' '? ['*''&'])?)" >> [&](auto s) {
+//    return s[s.size() - 1].string();
+//  };
+  g["ArgumentList"] << "'(' (Type Indent Argument (', ' Type Indent Argument)*)? ')'"
+    >> [&](auto s) {
+      for (int i = 0; i < s.size(); i += 3) {
+        // DEBUG
+        std::cout << s[i].evaluate() << std::endl;
+      }
+      return "ArgumentList"; 
+  };
   g["Argument"] << "(Identifier)";
 
   g["ParameterList"] << "('('( Parameter (',' Parameter)* )? ')')" >> [](auto) { return "ParameterList"; };
@@ -132,7 +144,7 @@ void config(Parser &g) {
   g["Preprocessing"] << "(Include | Ifdef | Ifndef | Else | Endif | Define | Pragma)"; // tested twice
 
   // function declaration and definition
-  g["Function"] << "(('inline')? Type Identifier ArgumentList (';' | Block))" >> [](auto) { return "Function"; }; // tested twice
+  g["Function"] << "(('inline')? Type Identifier ArgumentList ['\n''\t' ]* (';' | Block))" >> [](auto) { return "Function"; }; // tested twice
 
   g["FunctionCall"] << "(Identifier ParameterList)" >> [](auto) { return "FunctionCall"; }; // tested twice
 
@@ -168,9 +180,9 @@ void config(Parser &g) {
   g["Indent"] << "([' ''\t']*)" >> [](auto) { return "Indent"; };
 
   // rewritten and renamed, originated by *ControlStatement*
-  g["IfStatement"] << "('if' Indent '(' Condition ')' ['\n''\t' ]* (';' | Statement | Block)"
-                 "('else if' Indent '(' Condition ')' ['\n''\t' ]* (';' | Statement | Block))*"
-                 "('else' ['\n''\t' ]* (';' | Statement | Block))?)"
+  g["IfStatement"] << "(('if' Indent '(' Condition ')' ['\n''\t' ]* (';' | Statement | Block))"
+                 "(['\n''\t' ]* 'else if' Indent '(' Condition ')' ['\n''\t' ]* (';' | Statement | Block))*"
+                 "(['\n''\t' ]* 'else' ['\n''\t' ]* (';' | Statement | Block))?)"
     >> [](auto) { return "IfStatement"; };
 
   // TODO: check whether the identifier is in variableTable through action
@@ -258,7 +270,7 @@ void config(Parser &g) {
 
   // block: supported both versions of coding style
   // DEBUG: no statement inside block now!!!
-  g["Block"] << "('\n'? '{' Indent '\n'?  Program '}')" >> [](auto) { return "Block"; };
+  g["Block"] << "('\n'? '{' Indent '\n'?  Program? '}')" >> [](auto) { return "Block"; };
 
   // TODO: allow *private*, *protected* and *public*
   g["ClassBlock"] << "(Block)" >> [](auto) { return "ClassBlock"; };
@@ -268,8 +280,9 @@ void config(Parser &g) {
   // unused now
   g["TypeCheck"] << "" << [](auto) { return typeTable.check(); } >> [](auto) { return "TypeCheck"; };
 
-  g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function) Indent SingleLineComment? '\n') | ((Statement Indent)+ SingleLineComment? '\n'))*)";
-  g.setStart(g["Program"]);
-  // g["Test"] << "FunctionCall '\n'";
-  // g.setStart(g["Test"]);
+   g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function) Indent SingleLineComment? '\n') | ((Statement Indent)+ SingleLineComment? '\n'))*)";
+   g.setStart(g["Program"]);
+//   g["Test"] << "'(' ArgumentType Argument (', ' ArgumentType Argument)* ')' '\n'";
+//  g["Test"] << "IfStatement '\n'";
+//  g.setStart(g["Test"]);
 }
