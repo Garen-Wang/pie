@@ -83,6 +83,7 @@ void addKeywords(Parser &g) {
   g["m_doubleQuotes"] << "('\"')";
   g["m_assign"] << "('=')";
   g["m_semicolon"] << "(';')";
+  g["m_backslash"] << "('\\\\')";
   // keywords
   g["k_ifdef"] << "('ifdef')";
   g["k_ifndef"] << "('ifndef')";
@@ -103,6 +104,9 @@ void addKeywords(Parser &g) {
   g["k_else_if"] << "('else if')";
   g["k_else"] << "('else')";
   g["k_auto"] << "('auto')";
+  g["k_true"] << "('true')";
+  g["k_false"] << "('false')";
+  g["k_inline"] << "('inline')";
 }
 
 void detail(Parser &g) {
@@ -353,18 +357,54 @@ void detail(Parser &g) {
     return "ForLoop";
   };
 
-  // tomorrow start up here!!!!!
-
-  // StringLiteral now support string concat in neighboring lines
-  g["StringLiteral"] << "('\"' (!'\"' !'\n' .)* '\"' ('\n' Indent '\"' (!'\"' !'\n' .)* '\"')*)" >> [](auto) { return "StringLiteral"; };
+  g["StringLiteral"] << "(m_doubleQuotes ((!'\n' !'\"' !['\\\\'] .) | ['\\\\'] [a-z])* m_doubleQuotes (['\n''\t' ]* m_doubleQuotes ((!'\n' !'\"' !['\\\\'] .) | ['\\\\'] [a-z])* m_doubleQuotes)*)" >> [](auto s) {
+    std::cout << "This is StringLiteral" << std::endl;
+    for (int i = 0; i < s.size(); i += 2) {
+      std::cout << "from " << s[i].position() - idPrefixSum[getLineNumber(s[i].position()) - 1]
+                << " to " << s[i + 1].position() + s[i + 1].length() - idPrefixSum[getLineNumber(s[i + 1].position() + s[i + 1].length()) - 1] << std::endl;
+      // green
+    }
+    return "StringLiteral";
+  };
   // TODO: potential bug, cannot recognize '\n', '\b', etc.
-  g["CharLiteral"] << "([\'] ((!'\n' .) | (['\\']) ([a-z])) [\'])" >> [](auto) { return "CharLiteral"; };
+  g["CharAtomic"] << "((!'\n' !['\\\\'] .) | ['\\\\'] [a-z])" >> [](auto) { return "CharAtomic"; };
+  g["CharLiteral"] << "(m_singleQuotes CharAtomic m_singleQuotes)" >> [](auto s) {
+    std::cout << "This is CharLiteral" << std::endl;
+    std::cout << "from " << s[0].position() - idPrefixSum[getLineNumber(s[0].position()) - 1]
+              << " to " << s[2].position() + s[2].length() - idPrefixSum[getLineNumber(s[2].position() + s[2].length()) - 1] << std::endl;
+    // blue
+    return "CharLiteral";
+  };
 
   // DexLiteral include fraction, scientific notation, etc. tested twice
-  g["DecLiteral"] << "('-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? ('0' | ([1-9][0-9]*)))?)" >> [](auto) { return "DecLiteral"; };
-  g["HexLiteral"] << "('-'? '0x' ('0' | ([1-9a-fA-F][0-9a-fA-F]*)))" >> [](auto) { return "HexLiteral"; }; // tested
-  g["OctLiteral"] << "('-'? '0' ('0' | ([1-7][0-7]*)))" >> [](auto) { return "OctLiteral"; }; // tested
-  g["BoolLiteral"] << "('true' | 'false')" >> [](auto) { return "BoolLiteral"; };
+  g["DecLiteral"] << "('-'? ('0' | ([1-9][0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? ('0' | ([1-9][0-9]*)))?)" >> [](auto s) {
+    std::cout << "This is DecLiteral" << std::endl;
+    std::cout << "from " << s.position() - idPrefixSum[getLineNumber(s.position()) - 1]
+              << " to " << s.position() + s.length() - idPrefixSum[getLineNumber(s.position() + s.length()) - 1] << std::endl;
+    // blue
+    return "DecLiteral";
+  };
+  g["HexLiteral"] << "('-'? '0x' ('0' | ([1-9a-fA-F][0-9a-fA-F]*)))" >> [](auto s) {
+    std::cout << "This is HexLiteral" << std::endl;
+    std::cout << "from " << s.position() - idPrefixSum[getLineNumber(s.position()) - 1]
+              << " to " << s.position() + s.length() - idPrefixSum[getLineNumber(s.position() + s.length()) - 1] << std::endl;
+    // blue
+    return "HexLiteral";
+  };
+  g["OctLiteral"] << "('-'? '0' ('0' | ([1-7][0-7]*)))" >> [](auto s) {
+    std::cout << "This is OctLiteral" << std::endl;
+    std::cout << "from " << s.position() - idPrefixSum[getLineNumber(s.position()) - 1]
+              << " to " << s.position() + s.length() - idPrefixSum[getLineNumber(s.position() + s.length()) - 1] << std::endl;
+    // blue
+    return "OctLiteral";
+  };
+  g["BoolLiteral"] << "(k_true | k_false)" >> [](auto s) {
+    std::cout << "This is BoolLiteral" << std::endl;
+    std::cout << "from " << s.position() - idPrefixSum[getLineNumber(s.position()) - 1]
+              << " to " << s.position() + s.length() - idPrefixSum[getLineNumber(s.position() + s.length()) - 1] << std::endl;
+    // blue
+    return "BoolLiteral";
+  };
 }
 
 void config(Parser &g) {
@@ -518,8 +558,8 @@ void config(Parser &g) {
   // unused now
   g["TypeCheck"] << "" << [](auto) { return typeTable.check(); } >> [](auto) { return "TypeCheck"; };
 
-   g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function) Indent SingleLineComment? '\n') | ((Statement Indent)+ SingleLineComment? '\n'))*)";
-//   g.setStart(g["Program"]);
+  g["Program"] << "(((Indent Comment? '\n') | ((Preprocessing | Function) Indent SingleLineComment? '\n') | ((Statement Indent)+ SingleLineComment? '\n'))*)";
+  g.setStart(g["Program"]);
 //  g["Function"] << "(('inline')? Type Identifier ArgumentList ['\n''\t' ]* (';' | Block))" >> [](auto) { return "Function"; }; // tested twice
 //   g["Test"] << "Function '\n'";
 //   g.setStart(g["Test"]);

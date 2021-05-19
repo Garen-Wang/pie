@@ -35,7 +35,7 @@ void io(Parser &g, const std::string &inputFile) {
     // should have been in parser.cpp
     getPrefixSum(idPrefixSum);
     // DEBUG
-    for (auto x : idPrefixSum) std::cout << x << std::endl;
+    // for (auto x : idPrefixSum) std::cout << x << std::endl;
 
     auto output = g.run(input);
     std::cout << "Parsing result: " << output << std::endl;
