@@ -489,10 +489,9 @@ void config(Parser &g) {
 
   g["Literal"] << "(StringLiteral | CharLiteral | HexLiteral | OctLiteral | DecLiteral | BoolLiteral)";
   g["QualifiedConstant"] << "((Identifier '::')* Identifier)" >> [](auto) { return "QualifiedConstant"; };
-  // however, what if parentheses? what's the precedence of parentheses? what if nested parentheses?
-  // solved here
-  g["ParenExpr"] << "( &'(' '(' Expr_Level2 ')' )";
-  g["Expr_Level16"] << "(Literal | QualifiedConstant | ParenExpr)";
+
+  // TODO: now parentheses inside Expr is not supported
+  g["Expr_Level16"] << "(Literal | QualifiedConstant)";
 
   g["Indexing"] << "(QualifiedConstant '[' Indent Expr_Level10 Indent ']')" >> [](auto) { return "Indexing"; };
   g["Parameter"] << "(Expr_Level14)"; // overload line 85
