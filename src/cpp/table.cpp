@@ -122,8 +122,9 @@ class TypeTable {
 
       // DEBUG
 //      std::cout << "subexpr: " << subexpr << std::endl;
-//      g["SubType"] << subexpr;
-//      g["ManualType"] << "( (k_const Indent)? (k_static Indent)? SubType (' '? ['*''&'])?)" >> [](auto e) { return e[e.size() - 1].string(); };
+
+      g["SubType"] << subexpr;
+      g["ManualType"] << "( (k_const Indent)? (k_static Indent)? SubType (' '? ['*''&'])?)" >> [](auto e) { return e[e.size() - 1].string(); };
     }
     bool check() {
       for (const auto& it : typeTable) {
