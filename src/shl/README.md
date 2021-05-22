@@ -8,7 +8,11 @@ With our SHL parser, interaction between design and frontend can be achieved aut
 
 ## Preset Schemes
 
+- Default
 
+- Desert
+
+- Garen
 
 ## Keywords to be Highlighted
 
@@ -24,5 +28,16 @@ With our SHL parser, interaction between design and frontend can be achieved aut
 #languageType = c++
 
 Comment: bold, italic, underline, fg=#666666, bg=#ffffff
+
+Symbol: #666666
+
+
+
+```
+
+
+
+```
+Addition: Atomic '+' Atomic { $1 = (); $2 = (); $3 = () }
 
 ```
