@@ -12,6 +12,8 @@
 
 typedef peg_parser::ParserGenerator<std::string> Parser;
 
+Parser gen;
+
 class Colors {
 private:
   std::unordered_set<std::string> colors;
@@ -32,6 +34,10 @@ public:
 };
 Colors color;
 
+void changeAttr(const std::string& attr, int begin, int end) {
+
+}
+
 int main() {
   color.append("black");
   color.append("grey");
@@ -39,6 +45,7 @@ int main() {
   color.append("blue");
   color.append("cyan");
   color.append("purple");
+  color.append("green");
   Parser g;
   g.setSeparator(g["Separators"] << "['\t''\n' ]");
   g["Identifier"] << "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" >> [](auto s) {
@@ -59,8 +66,11 @@ int main() {
   };
   g["MultiBlock"] << "('{' ['\t''\n' ]* ('$' (Index equals Attr ['\t''\n' ]*))* '}')" >> [](auto s) {
     for (int i = 0; i < s.size(); i += 3) {
-      std::cout << "$" << s[i].evaluate() << " = ";
-      s[i + 2].evaluate();
+      // DEBUG
+      std::cout << "$" << s[i].evaluate() << " = " << s[i + 2].evaluate() << std::endl;
+
+      int idx = std::stoi(s[i].evaluate());
+      // changeAttr(s[idx + 2].evaluate(), s[idx].position(), s[idx].position() + s[idx].length());
     }
     return "MultiBlock";
   };
@@ -81,12 +91,12 @@ int main() {
     return s.string();
   };
   g["Attr"] << "(((underlined | bold | italic) Indent)* Color)" >> [](auto s) {
-//  g["Attr"] << "(bold? italic? underlined? color?)" >> [&](auto s) {
+    std::string ret;
     for (int i = 0; i < s.size(); i += 2) {
-      std::cout << s[i].evaluate() << " ";
+//      std::cout << s[i].evaluate() << " ";
+      ret += s[i].evaluate() + " ";
     }
-    std::cout << std::endl;
-    return "Attr";
+    return ret;
   };
   g["Comment"] << "('//' (!'\n' .)*)" >> [](auto) {
     return "Comment";
@@ -107,6 +117,12 @@ int main() {
   g["comma"] << "(',')" >> [](auto) {
     return "comma";
   };
+  g["colon"] << "(':')" >> [](auto) {
+    return "colon";
+  };
+  g["semicolon"] << "(';')" >> [](auto) {
+    return "semicolon";
+  };
   g["single_quote"] << "([\'])" >> [](auto) {
     return "single_quote";
   };
@@ -125,6 +141,9 @@ int main() {
   g["newline"] << "('\n')" >> [](auto) {
     return "newline";
   };
+  g["until_newline"] << "((!'\n' .)*)" >> [](auto) {
+    return "until_newline";
+  };
   g["tab"] << "('\t')" >> [](auto) {
     return "tab";
   };
@@ -133,7 +152,11 @@ int main() {
   };
 
 
-  g["Grammar"] << "(Identifier ':' GrammarExpr Block)";
+  g["Grammar"] << "(Identifier ':' GrammarExpr Block)" >> [&](auto s) {
+//    gen[s[0].string()] << s[1].string() >> functionInsideBlock(s[2].evaluate());
+//    gen[s[0].string()] << s[1].string() >> [](auto) { return "test"; };
+    return "Grammar";
+  };
   g["Program"] << "((Grammar | Comment)*)";
   g["Test"] << "Identifier ':' GrammarExpr MultiBlock";
   g.setStart(g["Program"]);

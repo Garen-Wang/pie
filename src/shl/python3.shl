@@ -1,0 +1,70 @@
+// python parser and grammar
+
+// keywords begin
+
+class: "'class'" {
+
+}
+
+def: "'def'" {
+
+}
+
+from: "'from'" {
+
+}
+
+import: "'import'" {
+
+}
+
+as: "'as'" {
+
+}
+
+if: "'if'" {
+
+}
+
+elif: "'elif'" {
+
+}
+
+else: "'else'" {
+
+}
+
+// keywords end
+
+// grammar begin
+where: "(Identifier ('.' Identifier)*)" {
+
+}
+
+ImportStatement: "from where import where as Identifier" {
+
+}
+
+Function: "(def Identifier ArgumentList)" {
+
+}
+
+ArgumentList: "((lparen (Argument (comma Argument)*)? rparen) colon Block)" {
+
+}
+
+Argument: "(Type Identifier)" {
+
+}
+
+Class: "class Identifier colon Block" {
+
+}
+
+Declaration: "Identifier equals Expr" {
+
+}
+
+
+
+// grammar end

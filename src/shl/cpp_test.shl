@@ -118,6 +118,171 @@ MultiLineComment: "(multi_comment_head CommentContent multi_comment_tail)" {
   $2 = grey
 }
 
+Comment: "(SingleLineComment | MultiLineComment)" { }
 
+Ifdef: "(hash ifdef Identifier)" {
+  $2 = bold cyan
+}
+Ifndef: "(hash ifndef Identifier)" {
+  $2 = bold cyan
+}
+Else: "(hash else)" {
+
+}
+Endif: "(hash endif)" {
+
+}
+Define: "(hash define Identifier Identifier?)" {
+  $0 = italic grey
+  $1 = italic grey
+  $2 = bold grey
+  $3 = bold grey
+}
+Pragma: "(hash pragma until_newline)" {
+  $2 = green
+}
+IncludeDirectory: "(([a-zA-Z0-9] | '_' | '.' | '/')+)" { }
+Include: "(hash include ((double_quote IncludeDirectory double_quote) | (langle IncludeDirectory rangle)))" {
+  $0 = shallow_yellow
+  $1 = shallow_yellow
+  $2 = green
+  $3 = green
+  $4 = green
+}
+Preprocessing: "(Include | Ifdef | Ifndef | Else | Endif | Define | Pragma)" { }
+
+UsingNamespace: "(using namespace Identifier)" {
+  $2 = cyan
+}
+UsingAssignment: "(using Identifier single_equal QualifiedConstant)" {
+  $1 = purple
+}
+UsingClass: "(using QualifiedConstant)" {
+  $0 = blue
+}
+UsingStatement: "((UsingNamespace | UsingAssignment | UsingClass) semicolon)" { }
+
+Argument: "(Identifier)" { }
+ArgumentList: "(lparen Type Argument (comma Type Argument)* rparen)" {
+
+}
+Parameter: "(Expr)" {}
+ParameterList: "(lparen Parameter (comma Parameter)* rparen)" {
+
+}
+
+TemplateList: "(langle Type (comma Type)* rangle)" {
+
+}
+
+AutoType: "(const? auto ref?)" {
+
+}
+
+ReturnStatement: "(return Expr semicolon)" {
+
+}
+
+WhileLoop: "(while lparen Cond rparen ((Statement | semicolon) | Block))" {
+
+}
+
+DoWhileLoop: "(do ((Statement | semicolon) | Block) while lparen Cond rparen semicolon)" {
+
+}
+
+ForLoop: "(for lparen Declaration semicolon Cond semicolon Expr rparen ((Statement | semicolon) | Block))" {
+
+}
+
+CharAtomic: "((!newline !backslash .) | (backslash [a-z]))" { }
+StringLiteral: "(double_quote CharAtomic* double_quote)" {
+  green
+}
+// alnum
+CharLiteral: "(single_quote CharAtomic single_quote)" {
+  blue
+}
+
+Zero: "('0')" { }
+DecDigitHead: "([1-9])" { }
+DecDigitBody: "([0-9])" { }
+DecLiteral: "((Zero) | (DecDigitHead DecDigitBody*))" {
+  blue
+}
+
+HexDigitHead: "('0x')" { }
+HexDigitBody: "([0-9a-fA-F])" { }
+HexLiteral: "(HexDigitHead HexDigitBody+)" {
+  blue
+}
+
+OctDigitHead: "(Zero)" { }
+OctDigitBody: "([0-7])" { }
+OctLiteral: "(OctDigitHead OctDigitBody+)" {
+  blue
+}
+
+BoolLiteral: "(true | false)" {
+
+}
+
+Literal: "(BoolLiteral | HexLiteral | DecLiteral | OctLiteral | StringLiteral | CharLiteral)" {
+
+}
+
+// TODO: gengxifen
+Type: "(ManualType | AutoType)" {
+
+}
+
+ManualType: "(int)" {
+
+}
+
+Function: "(inline? Type Identifier ArgumentList (semicolon | Statement | Block))" {
+
+}
+
+// simplified version
+FunctionCall: "(Identifier ParameterList)" {
+
+}
+
+Class: "(class Identifier ClassBlock semicolon)" {
+
+}
+
+Struct: "(struct Identifier ClassBlock semicolon)" {
+
+}
+
+TypedefStatement: "(typedef Type Identifier semicolon)" {
+
+}
+
+Declaration: "(Type TemplateList? Identifier (single_equal Expr) (comma Identifier single_equal Expr)*)" {
+
+}
+
+DeclarationStatement: "(Declaration semicolon)" {
+
+}
+
+Cond: "(Expr)" { }
+
+TryCatchStatement: "(try (Statement | Block) catch lparen Declaration rparen (Statement | Block))" {
+
+}
+
+IfStatement: "(if lparen Cond rparen (semicolon | Statement | Block) (else if lparen Cond rparen (semicolon | Statement | Block))* (else (semicolon | Statement | Block))?)" {
+
+}
+
+Statement: "(UsingStatement | DeclarationStatement | ReturnStatement | LoopStatement | IfStatement | ExprStatement | TypedefStatement | Class | Struct | Block)" {
+
+}
+
+Expr: "(Literal)" { }
 
 // grammars end
