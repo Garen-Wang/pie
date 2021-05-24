@@ -1,235 +1,290 @@
-#language=cpp
-#colorscheme=desert
-#debug=true
-/*
-skip all the space
-*/
+// skip all the space
+// default color is black, if never mentioned
+// recursively look at its color till the bottom definition
 
 // markers
 
+int: "('int')" {
+
+}
 
 // keywords begin
-single_comment_head: ('//') { }
-multi_comment_head: ('/*') { }
-multi_comment_tail: ('*/') { }
-hash: ('#') { }
-lparen: ('(') { }
-rparen: (')') { }
-langle: ('<') { }
-rangle: ('>') { }
-comma: (',') { }
-single_quote: ([\']) { }
-double_quote: ('\"') { }
-single_equal: ('=') { }
-double_equal: ('==') { }
-backslash: ('\\') { }
-newline: ('\n') { }
+single_comment_head: "('//')" {
+  grey
+}
+multi_comment_head: "('/*')" {
+  grey
+}
+multi_comment_tail: "('*/')" {
+  grey
+}
+ref: "('&')" { }
+deref: "('*')" { }
+hash: "('#')" {
+  shallow_yellow
+}
 
-typedef: ('typedef') { }
-pragma: ('pragma') { }
-ifdef: ('ifdef') { }
-ifndef: ('ifndef') { }
-else: ('else') { }
-endif: ('endif') { }
-include: ('include') { }
-using: ('using') { }
-namespace: ('namespace') { }
-const: ('const') { }
-static: ('static') { }
-auto: ('auto') { }
-return: ('return') { }
-while: ('while') { }
-if: ('if') { }
-inline: ('inline') { }
-try: ('try') { }
-catch: ('catch') { }
-true: ('true') { }
-false: ('false') { }
-do: ('do') { }
-for: ('for') { }
-try: ('try') { }
-catch: ('catch') { }
+typedef: "('typedef')" {
+  blue
+}
+pragma: "('pragma')" {
+  shallow_yellow
+}
+ifdef: "('ifdef')" {
+  shallow_yellow
+}
+ifndef: "('ifndef')" {
+  shallow_yellow
+}
+else: "('else')" {
+  shallow_yellow
+}
+endif: "('endif')" {
+  shallow_yellow
+}
+include: "('include')" {
+  shallow_yellow
+}
+using: "('using')" {
+  blue
+}
+namespace: "('namespace')" {
+  blue
+}
+const: "('const')" {
+  blue
+}
+static: "('static')" {
+  blue
+}
+auto: "('auto')" {
+  blue
+}
+return: "('return')" {
+  blue
+}
+while: "('while')" {
+  blue
+}
+if: "('if')" {
+  blue
+}
+inline: "('inline')" {
+  blue
+}
+try: "('try')" {
+  blue
+}
+catch: "('catch')" {
+  blue
+}
+true: "('true')" {
+  blue
+}
+false: "('false')" {
+  blue
+}
+new: "('new')" {
+  blue
+}
+delete: "('delete')" {
+  blue
+}
+do: "('do')" {
+  blue
+}
+for: "('for')" {
+  blue
+}
+try: "('try')" {
+  blue
+}
+catch: "('catch')" {
+  blue
+}
 
 // keywords end
 
 // grammars begin
-Identifier: (([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*) {
-
+Identifier: "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
+  black
 }
 
-SingleLineComment: (single_comment_head CommentContent) {
+SingleLineComment: "(single_comment_head CommentContent)" {
   $0 = grey
   $1 = grey
 }
-MultiLineComment: (multi_comment_head CommentContent multi_comment_tail) {
+MultiLineComment: "(multi_comment_head CommentContent multi_comment_tail)" {
   $0 = grey
   $1 = grey
   $2 = grey
 }
-Comment: (SingleLineComment | MultiLineComment) { }
+Comment: "(SingleLineComment | MultiLineComment)" { }
 
-Ifdef: (hash ifdef Identifier) {
-  $0 = shallow_yellow
-  $1 = shallow_yellow
+Ifdef: "(hash ifdef Identifier)" {
   $2 = bold cyan
 }
-Ifndef: (hash ifndef Identifier) {
-  $0 = shallow_yellow
-  $1 = shallow_yellow
+Ifndef: "(hash ifndef Identifier)" {
   $2 = bold cyan
 }
-Else: (hash else) {
-  $0 = shallow_yellow
-  $1 = shallow_yellow
+Else: "(hash else)" {
+
 }
-Endif: (hash endif) {
-  $0 = shallow_yellow
-  $1 = shallow_yellow
+Endif: "(hash endif)" {
+
 }
-Define: (hash define Identifier Identifier?) {
+Define: "(hash define Identifier Identifier?)" {
   $0 = italic grey
   $1 = italic grey
   $2 = bold grey
   $3 = bold grey
 }
-until_newline: ((!'\n' .)*) { }
-Pragma: (hash pragma until_newline) {
+until_newline: "((!'\n' .)*)" { }
+Pragma: "(hash pragma until_newline)" {
+  $2 = green
+}
+IncludeDirectory: "(([a-zA-Z0-9] | '_' | '.' | '/')+)" { }
+Include: "(hash include ((double_quote IncludeDirectory double_quote) | (langle IncludeDirectory rangle)))" {
   $0 = shallow_yellow
   $1 = shallow_yellow
   $2 = green
+  $3 = green
+  $4 = green
 }
-IncludeDirectory: (([a-zA-Z0-9] | '_' | '.' | '/')+) {
+Preprocessing: "(Include | Ifdef | Ifndef | Else | Endif | Define | Pragma)" { }
 
-}
-Include: (hash include ((double_quote IncludeDirectory double_quote) | (langle IncludeDirectory rangle))) {
-
-}
-Preprocessing: (Include | Ifdef | Ifndef | Else | Endif | Define | Pragma) {
-
-}
-
-UsingNamespace: (using namespace Identifier) {
-  $0 = blue
+UsingNamespace: "(using namespace Identifier)" {
   $2 = cyan
 }
-UsingAssignment: (using Identifier single_equal QualifiedConstant) {
-  $0 = blue
-  $2 = purple
-  $4 = purple
+UsingAssignment: "(using Identifier single_equal QualifiedConstant)" {
+  $1 = purple
 }
-UsingClass: (using QualifiedConstant) {
+UsingClass: "(using QualifiedConstant)" {
   $0 = blue
 }
-UsingStatement: ((UsingNamespace | UsingAssignment | UsingClass) semicolon) { }
+UsingStatement: "((UsingNamespace | UsingAssignment | UsingClass) semicolon)" { }
 
-Argument: (Identifier) {}
-ArgumentList: (lparen Type Argument (comma Type Argument)* rparen) {
-  // TODO
-}
-Parameter: (Expr) {}
-ParameterList: (lparen Parameter (comma Parameter)* rparen) {
-  // TODO
-}
+Argument: "(Identifier)" { }
+ArgumentList: "(lparen Type Argument (comma Type Argument)* rparen)" {
 
-TemplateList: (langle Type (comma Type)* rangle) {
-  // TODO
 }
-
-AutoType: ((const)? auto (' '? '&')?) {
+Parameter: "(Expr)" {}
+ParameterList: "(lparen Parameter (comma Parameter)* rparen)" {
 
 }
 
-ReturnStatement: (return Expr semicolon) {
-  $0 = blue
-}
-
-WhileLoop: (while lparen Cond rparen ((Statement | semicolon) | Block)) {
+TemplateList: "(langle Type (comma Type)* rangle)" {
 
 }
 
-DoWhileLoop: (do ((Statement | semicolon) | Block) while lparen Cond rparen semicolon) {
+AutoType: "(const? auto ref?)" {
 
 }
 
-ForLoop: (for lparen Declaration semicolon Cond semicolon Expr rparen ((Statement | semicolon) | Block)) {
+ReturnStatement: "(return Expr semicolon)" {
 
 }
 
-CharAtomic: ((!newline !backslash .) | (backslash [a-z])) {
+WhileLoop: "(while lparen Cond rparen ((Statement | semicolon) | Block))" {
 
 }
-StringLiteral: (double_quote CharAtomic* double_quote) {
+
+DoWhileLoop: "(do ((Statement | semicolon) | Block) while lparen Cond rparen semicolon)" {
+
+}
+
+ForLoop: "(for lparen Declaration semicolon Cond semicolon Expr rparen ((Statement | semicolon) | Block))" {
+
+}
+
+CharAtomic: "((!newline !backslash .) | (backslash [a-z]))" { }
+StringLiteral: "(double_quote CharAtomic* double_quote)" {
   green
 }
 // alnum
-CharLiteral: (single_quote CharAtomic single_quote) {
+CharLiteral: "(single_quote CharAtomic single_quote)" {
   blue
 }
 
-Zero: ('0') { }
-DecDigitHead: ([1-9]) { }
-DecDigitBody: ([0-9]) { }
-DecLiteral: ((Zero) | (DecDigitHead DecDigitBody*)) { }
+Zero: "('0')" { }
+DecDigitHead: "([1-9])" { }
+DecDigitBody: "([0-9])" { }
+DecLiteral: "((Zero) | (DecDigitHead DecDigitBody*))" {
+  blue
+}
 
-HexDigitHead: ('0x') { }
-HexDigitBody: ([0-9a-fA-F]) { }
-HexLiteral: (HexDigitHead HexDigitBody+) { }
+HexDigitHead: "('0x')" { }
+HexDigitBody: "([0-9a-fA-F])" { }
+HexLiteral: "(HexDigitHead HexDigitBody+)" {
+  blue
+}
 
-OctDigitHead: (Zero) { }
-OctDigitBody: ([0-7]) { }
-OctLiteral: (OctDigitHead OctDigitBody+) { }
+OctDigitHead: "(Zero)" { }
+OctDigitBody: "([0-7])" { }
+OctLiteral: "(OctDigitHead OctDigitBody+)" {
+  blue
+}
 
-BoolLiteral: (true | false) { }
-
-Literal: (BoolLiteral | HexLiteral | DecLiteral | OctLiteral | StringLiteral | CharLiteral) {
+BoolLiteral: "(true | false)" {
 
 }
 
-Type: (ManualType | AutoType) {
-  // TODO
+Literal: "(BoolLiteral | HexLiteral | DecLiteral | OctLiteral | StringLiteral | CharLiteral)" {
+
 }
 
-Function: (inline? Type Identifier ArgumentList (semicolon | Statement | Block)) {
+// TODO: gengxifen
+Type: "(ManualType | AutoType)" {
+
+}
+
+ManualType: "(int)" {
+
+}
+
+Function: "(inline? Type Identifier ArgumentList (semicolon | Statement | Block))" {
 
 }
 
 // simplified version
-FunctionCall: (Identifier ParameterList) {
+FunctionCall: "(Identifier ParameterList)" {
 
 }
 
-Class: (class Identifier ClassBlock semicolon) {
+Class: "(class Identifier ClassBlock semicolon)" {
 
 }
 
-Struct: (struct Identifier ClassBlock semicolon) {
+Struct: "(struct Identifier ClassBlock semicolon)" {
 
 }
 
-TypedefStatement: (typedef Type Identifier semicolon) {
+TypedefStatement: "(typedef Type Identifier semicolon)" {
 
 }
 
-Declaration: (Type TemplateList? Identifier (single_equal Expr) (comma Identifier single_equal Expr)*) {
+Declaration: "(Type TemplateList? Identifier (single_equal Expr) (comma Identifier single_equal Expr)*)" {
 
 }
 
-DeclarationStatement: (Declaration semicolon) {
+DeclarationStatement: "(Declaration semicolon)" {
 
 }
 
-Cond: (Expr) { }
+Cond: "(Expr)" { }
 
-TryCatchStatement: (try (Statement | Block) catch lparen Declaration rparen (Statement | Block)) {
-
-}
-
-IfStatement: (if lparen Cond rparen (semicolon | Statement | Block) (else if lparen Cond rparen (semicolon | Statement | Block))* (else (semicolon | Statement | Block))?) {
+TryCatchStatement: "(try (Statement | Block) catch lparen Declaration rparen (Statement | Block))" {
 
 }
 
-Statement: (UsingStatement | DeclarationStatement | ReturnStatement | LoopStatement | IfStatement | ExprStatement | TypedefStatement | Class | Struct | Block) {
+IfStatement: "(if lparen Cond rparen (semicolon | Statement | Block) (else if lparen Cond rparen (semicolon | Statement | Block))* (else (semicolon | Statement | Block))?)" {
 
 }
+
+Statement: "(UsingStatement | DeclarationStatement | ReturnStatement | LoopStatement | IfStatement | ExprStatement | TypedefStatement | Class | Struct | Block)" {
+
+}
+
+Expr: "(Literal)" { }
 
 // grammars end

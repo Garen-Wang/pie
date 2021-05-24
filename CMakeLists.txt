@@ -25,18 +25,18 @@ target_link_libraries(cpp_parser PEGParser::PEGParser)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # python parser
-project(python_poc)
-
-add_executable(python_poc
-  src/python/poc.cpp
-)
-
-target_include_directories(python_poc
-  PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-)
-target_link_libraries(python_poc PEGParser::PEGParser)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+#project(python_poc)
+#
+#add_executable(python_poc
+#  src/python/poc.cpp
+#)
+#
+#target_include_directories(python_poc
+#  PRIVATE
+#    ${PROJECT_SOURCE_DIR}/include
+#)
+#target_link_libraries(python_poc PEGParser::PEGParser)
+#target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 ## python parser
 #project(python_parser)
@@ -52,16 +52,17 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 #target_link_libraries(python_parser PEGParser::PEGParser)
 #target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 #
-## shl
-#project(shl)
-#
-#add_executable(shl
-#    src/shl/main.cpp
-#    )
-#
-#target_include_directories(shl
-#    PRIVATE
-#    ${PROJECT_SOURCE_DIR}/include
-#    )
-#target_link_libraries(shl PEGParser::PEGParser)
-#target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+# shl
+project(shl)
+
+add_executable(shl
+    src/shl/test.cpp
+)
+
+target_include_directories(shl
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    )
+target_link_libraries(shl PEGParser::PEGParser)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)

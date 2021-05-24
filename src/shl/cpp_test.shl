@@ -1,0 +1,123 @@
+// skip all the space
+// default color is black, if never mentioned
+// recursively look at its color till the bottom definition
+
+// markers
+
+
+// key markers begin
+single_comment_head: "('//')" {
+  grey
+}
+multi_comment_head: "('/*')" {
+  grey
+}
+multi_comment_tail: "('*/')" {
+  grey
+}
+ref: "('&')" { }
+deref: "('*')" { }
+hash: "('#')" {
+  shallow_yellow
+}
+// key markers end
+
+// keywords begin
+typedef: "('typedef')" {
+  blue
+}
+pragma: "('pragma')" {
+  shallow_yellow
+}
+ifdef: "('ifdef')" {
+  shallow_yellow
+}
+ifndef: "('ifndef')" {
+  shallow_yellow
+}
+else: "('else')" {
+  shallow_yellow
+}
+endif: "('endif')" {
+  shallow_yellow
+}
+include: "('include')" {
+  shallow_yellow
+}
+using: "('using')" {
+  blue
+}
+namespace: "('namespace')" {
+  blue
+}
+const: "('const')" {
+  blue
+}
+static: "('static')" {
+  blue
+}
+auto: "('auto')" {
+  blue
+}
+return: "('return')" {
+  blue
+}
+while: "('while')" {
+  blue
+}
+if: "('if')" {
+  blue
+}
+inline: "('inline')" {
+  blue
+}
+try: "('try')" {
+  blue
+}
+catch: "('catch')" {
+  blue
+}
+true: "('true')" {
+  blue
+}
+false: "('false')" {
+  blue
+}
+new: "('new')" {
+  blue
+}
+delete: "('delete')" {
+  blue
+}
+do: "('do')" {
+  blue
+}
+for: "('for')" {
+  blue
+}
+try: "('try')" {
+  blue
+}
+catch: "('catch')" {
+  blue
+}
+// keywords end
+
+// grammars begin
+Identifier: "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
+  black
+}
+
+SingleLineComment: "(single_comment_head CommentContent)" {
+  $0 = grey
+  $1 = grey
+}
+MultiLineComment: "(multi_comment_head CommentContent multi_comment_tail)" {
+  $0 = grey
+  $1 = grey
+  $2 = grey
+}
+
+
+
+// grammars end
