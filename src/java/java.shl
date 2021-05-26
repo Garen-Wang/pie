@@ -1,0 +1,57 @@
+package: "('package')" { }
+import: "('import')" { }
+class: "('class')" { }
+extends: "('extends')" { }
+implements: "('implements')" { }
+interface: "('interface')" { }
+
+synchronized: "('synchronized')" { }
+final: "('final')" { }
+boolean: "('boolean')" { }
+byte: "('byte')" { }
+char: "('char')" { }
+int: "('int')" { }
+long: "('long')" { }
+double: "('double')" { }
+float: "('float')" { }
+short: "('short')" { }
+void: "('void')" { }
+this: "('this')" { }
+super: "('super')" { }
+return: "('return')" { }
+
+new: "('new')" { }
+
+abstract: "('abstract')" { }
+static: "('static')" { }
+default: "('default')" { }
+private: "('private')" { }
+protected: "('protected')" { }
+public: "('public')" { }
+throw: "('throw')" { }
+throws: "('throws')" { }
+
+try: "('try')" { }
+catch: "('catch')" { }
+finally: "('finally')" { }
+
+for: "('for')" { }
+do: "('do')" { }
+while: ('while') { }
+break: "('break')" { }
+continue: "('continue')" { }
+
+if: "('if')" { }
+else: "('else')" { }
+
+switch: "('switch')" { }
+case: "('case')" { }
+
+instanceof: "('instanceof')" { }
+
+Visibility: "(default | public | protected | private)" {
+
+}
+
+PrimDataType: (boolean | byte | char | double | float | short | long | int)
+

@@ -2,16 +2,31 @@
 // Created by garen on 5/23/21.
 //
 #include <peg_parser/generator.h>
-
+#include <cassert>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <string_view>
 #include <unordered_set>
+#include <utility>
 
-typedef peg_parser::ParserGenerator<std::string> Parser;
 using Attr = std::string;
-typedef peg_parser::ParserGenerator<Attr, Parser&> ParserBuilder;
+class SyntaxHighlightInfo {
+public:
+  int idx = 0;
+  Attr attr;
+  explicit SyntaxHighlightInfo(Attr attr) {
+    idx = -1;
+    this->attr = std::move(attr);
+  }
+  explicit SyntaxHighlightInfo(int idx, Attr attr) {
+    this->idx = idx;
+    this->attr = std::move(attr);
+  }
+};
+typedef std::vector<SyntaxHighlightInfo> SyntaxHighlightInfos;
+typedef peg_parser::ParserGenerator<std::string> Parser;
+typedef peg_parser::ParserGenerator<std::shared_ptr<SyntaxHighlightInfos>, Parser&> ParserBuilder;
 
 class Colors {
 private:
@@ -33,7 +48,7 @@ public:
 };
 Colors color;
 
-void changeAttr(const Attr& attr, int begin, int end) {
+void changeAttr(Attr attr, int begin, int end) {
 
 }
 
@@ -48,138 +63,237 @@ int main() {
   ParserBuilder g;
   g.setSeparator(g["Separators"] << "['\t''\n' ]");
   g["Identifier"] << "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" >> [](auto s, Parser&) {
-    return s.string();
+    return nullptr;
+//    return s.string();
   };
   g["GrammarExpr"] << "('\"' (!'\"' .)* '\"')" >> [](auto, Parser&) {
-    return "GrammarExpr";
+    return nullptr;
+//    return "GrammarExpr";
   };
   g["Indent"] << "(['\t''\n' ]*)" >> [](auto, Parser&) {
-    return "Indent";
+    return nullptr;
+//    return "Indent";
   };
   g["EmptyBlock"] << "('{' Indent '}')" >> [](auto, Parser&) {
-    return "EmptyBlock";
+    return nullptr;
+//    return "EmptyBlock";
   };
-  g["OnlyBlock"] << "('{' Indent Attr Indent '}')";
+  g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >> [](auto s, Parser& gen) {
+    auto ret = std::make_shared<SyntaxHighlightInfos>();
+    Attr attr = s[1].evaluate(gen)->begin()->attr;
+    ret->push_back(SyntaxHighlightInfo(-1, attr));
+    return ret;
+  };
   g["equals"] << "(Indent '=' Indent)" >> [](auto, Parser&) {
-    return "equals";
+    return nullptr;
+//    return "equals";
   };
   g["MultiBlock"] << "('{' ['\t''\n' ]* ('$' (Index equals Attr ['\t''\n' ]*))* '}')" >> [](auto s, Parser& gen) {
+    auto ret = std::make_shared<SyntaxHighlightInfos>();
     for (int i = 0; i < s.size(); i += 3) {
-      // DEBUG
-      // std::cout << "$" << s[i].evaluate() << " = " << s[i + 2].evaluate() << std::endl;
-
       int idx = std::stoi(s[i].string());
-      changeAttr(s[idx + 2].evaluate(gen), s[idx].position(), s[idx].position() + s[idx].length());
+      Attr attr = s[i + 2].evaluate(gen)->begin()->attr;
+      // DEBUG
+      std::cout << "$" << idx << " = " << s[i + 2].string() << std::endl; // since it contains newline
+
+      ret->push_back(SyntaxHighlightInfo(idx, attr));
     }
-    return "MultiBlock";
+    return ret;
+//    return "MultiBlock";
   };
+  g["Block"] << "(EmptyBlock | OnlyBlock | MultiBlock)";
   g["Index"] << "(('0') | ([1-9][0-9]*))" >> [](auto s, Parser&) {
-    return s.string();
+    return nullptr;
+//    return s.string();
   };
   g["underlined"] << "'underlined'" >> [](auto, Parser&) {
-    return "underlined";
+    return nullptr;
+//    return "underlined";
   };
   g["bold"] << "'bold'" >> [](auto, Parser&) {
-    return "bold";
+    return nullptr;
+//    return "bold";
   };
   g["italic"] << "'italic'" >> [](auto, Parser&) {
-    return "italic";
+    return nullptr;
+//    return "italic";
   };
   g["Color"] << color.getExpr() >> [](auto s, Parser&) {
-    return s.string();
+    return nullptr;
+//    return s.string();
   };
   g["Attr"] << "(((underlined | bold | italic) Indent)* Color)" >> [](auto s, Parser&) {
-    std::string ret;
+    Attr attr;
+    auto ret = std::make_shared<SyntaxHighlightInfos>();
+
     for (int i = 0; i < s.size(); i += 2) {
 //      std::cout << s[i].evaluate() << " ";
-      ret += s[i].string() + " ";
+      attr += s[i].string() + " ";
     }
+    ret->push_back(SyntaxHighlightInfo(attr));
     return ret;
   };
   g["Comment"] << "('//' (!'\n' .)*)" >> [](auto, Parser&) {
-    return "Comment";
+    return nullptr;
+//    return "Comment";
   };
-  // integrated basic keywords
+  // integrated
   g["lparen"] << "('(')" >> [](auto, Parser&) {
-    return "lparen";
+    return nullptr;
+//    return "lparen";
   };
   g["rparen"] << "('(')" >> [](auto, Parser&) {
-    return "rparen";
+    return nullptr;
+//    return "rparen";
   };
   g["langle"] << "('<')" >> [](auto, Parser&) {
-    return "langle";
+    return nullptr;
+//    return "langle";
   };
   g["rangle"] << "('>')" >> [](auto, Parser&) {
-    return "rangle";
+    return nullptr;
+//    return "rangle";
   };
   g["comma"] << "(',')" >> [](auto, Parser&) {
-    return "comma";
+    return nullptr;
+//    return "comma";
   };
   g["colon"] << "(':')" >> [](auto, Parser&) {
-    return "colon";
+    return nullptr;
+//    return "colon";
   };
   g["semicolon"] << "(';')" >> [](auto, Parser&) {
-    return "semicolon";
+    return nullptr;
+//    return "semicolon";
   };
   g["single_quote"] << "([\'])" >> [](auto, Parser&) {
-    return "single_quote";
+    return nullptr;
+//    return "single_quote";
   };
   g["double_quote"] << "('\"')" >> [](auto, Parser&) {
-    return "double_quote";
+    return nullptr;
+//    return "double_quote";
   };
   g["backslash"] << "('\\\\')" >> [](auto, Parser&) {
-    return "backslash";
+    return nullptr;
+//    return "backslash";
   };
   g["single_equal"] << "('=')" >> [](auto, Parser&) {
-    return "single_equal";
+    return nullptr;
+//    return "single_equal";
   };
   g["double_equal"] << "('==')" >> [](auto, Parser&) {
-    return "double_equal";
+    return nullptr;
+//    return "double_equal";
   };
   g["newline"] << "('\n')" >> [](auto, Parser&) {
-    return "newline";
+    return nullptr;
+//    return "newline";
   };
   g["until_newline"] << "((!'\n' .)*)" >> [](auto, Parser&) {
-    return "until_newline";
+    return nullptr;
+//    return "until_newline";
   };
   g["tab"] << "('\t')" >> [](auto, Parser&) {
-    return "tab";
+    return nullptr;
+//    return "tab";
   };
   g["space"] << "(' ')" >> [](auto, Parser&) {
-    return "space";
+    return nullptr;
+//    return "space";
   };
 
-
-  g["GrammarWithMultiBlock"] << "(Identifier ':' GrammarExpr MultiBlock)" >> [&](auto s, Parser&) {
-    // how to pass the Attr key-values to a lambda function????????????????????????
-    // TODO: if this problem is not solved, we cannot dynamically generate parser with syntax highlighting feature
-    return "GrammarWithMultiBlock";
-  };
-  g["GrammarWithOnlyBlock"] << "(Identifier ':' GrammarExpr OnlyBlock)" >> [&](auto s, Parser& gen) {
-    auto attr = s[2].evaluate(gen);
-    gen[s[0].string()] << s[1].string() >> [&](auto s) {
-      for (int i = 0; i < s.size(); ++i) {
-        changeAttr(attr, s[i].position(), s[i].position() + s[i].length());
-      }
-      return "test";
+  g["InitParserBuilder"] << "''" >> [](auto, Parser& gen) {
+    // DEBUG
+    std::cout << "hahshfshsd" << std::endl;
+    gen["lparen"] << "('(')" >> [](auto) {
+      return "lparen";
     };
-    return "GrammarWithOnlyBlock";
+    gen["rparen"] << "('(')" >> [](auto) {
+      return "rparen";
+    };
+    gen["langle"] << "('<')" >> [](auto) {
+      return "langle";
+    };
+    gen["rangle"] << "('>')" >> [](auto) {
+      return "rangle";
+    };
+    gen["comma"] << "(',')" >> [](auto) {
+      return "comma";
+    };
+    gen["colon"] << "(':')" >> [](auto) {
+      return "colon";
+    };
+    gen["semicolon"] << "(';')" >> [](auto) {
+      return "semicolon";
+    };
+    gen["single_quote"] << "([\'])" >> [](auto) {
+      return "single_quote";
+    };
+    gen["double_quote"] << "('\"')" >> [](auto) {
+      return "double_quote";
+    };
+    gen["backslash"] << "('\\\\')" >> [](auto) {
+      return "backslash";
+    };
+    gen["single_equal"] << "('=')" >> [](auto) {
+      return "single_equal";
+    };
+    gen["double_equal"] << "('==')" >> [](auto) {
+      return "double_equal";
+    };
+    gen["newline"] << "('\n')" >> [](auto) {
+      return "newline";
+    };
+    gen["until_newline"] << "((!'\n' .)*)" >> [](auto) {
+      return "until_newline";
+    };
+    gen["tab"] << "('\t')" >> [](auto) {
+      return "tab";
+    };
+    gen["space"] << "(' ')" >> [](auto) {
+      return "space";
+    };
+    return nullptr;
   };
-  g["Grammar"] << "(GrammarWithOnlyBlock | GrammarWithMultiBlock)";
-  g["Program"] << "((Grammar | Comment)*)";
+
+  g["Grammar"] << "(Identifier ':' GrammarExpr Block)" >> [&](auto s, Parser& gen) {
+    auto identifier = s[0].string();
+    auto grammarExpr = s[1].string();
+    auto syntaxHighlightInfos = s[2].evaluate(gen);
+//    gen[identifier] << grammarExpr >> [&](auto ss) {
+//      for (auto it = syntaxHighlightInfos->begin(); it != syntaxHighlightInfos->end(); ++it) {
+//        changeAttr(it->attr, ss[it->idx].position(), ss[it->idx].position() + ss[it->idx].length());
+//      }
+//      return identifier;
+//    };
+    return nullptr;
+  };
+  g["Program"] << "(InitParserBuilder (Grammar | Comment)*)";
   g["Test"] << "Identifier ':' GrammarExpr MultiBlock";
   g.setStart(g["Program"]);
 //  g.setStart(g["Program"]);
 
-  std::ifstream ifs("../src/shl/cpp_test.shl");
+  std::ifstream ifs("../src/cpp/cpp_test.shl");
   std::string shlFile((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 //  std::cout << shlFile << std::endl;
   try {
     Parser gen;
     auto output = g.run(shlFile, gen);
+    gen.setSeparator(gen["Separators"] << "['\t''\n' ]");
+    gen["Program"] << "lparen" >> [](auto) { return "returnValue"; };
+    gen.setStart(gen["Program"]);
     std::cout << "Parsing result: " << output << std::endl;
+    std::string anotherInput;
+    std::getline(std::cin, anotherInput);
+    try {
+      auto anotherOutput = gen.run(anotherInput);
+      std::cout << "Parsing result: " << anotherOutput << std::endl;
+    } catch (peg_parser::SyntaxError &ee) {
+      std::cout << "GeneratedParser: Syntax error when parsing " << ee.syntax->rule->name << std::endl;
+    }
   } catch (peg_parser::SyntaxError &e) {
-    std::cout << "Syntax error when parsing " << e.syntax->rule->name << std::endl;
+    std::cout << "ParserBuilder: Syntax error when parsing " << e.syntax->rule->name << std::endl;
   }
   return 0;
 }
