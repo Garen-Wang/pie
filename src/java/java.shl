@@ -1,3 +1,4 @@
+// keywords
 package: "('package')" { }
 import: "('import')" { }
 class: "('class')" { }
@@ -37,7 +38,7 @@ finally: "('finally')" { }
 
 for: "('for')" { }
 do: "('do')" { }
-while: ('while') { }
+while: "('while')" { }
 break: "('break')" { }
 continue: "('continue')" { }
 
@@ -49,9 +50,104 @@ case: "('case')" { }
 
 instanceof: "('instanceof')" { }
 
+Identifier: "(([a-zA-Z] | '_' | '$') ([a-zA-Z0-9] | '_')*)" {
+  black
+}
+
 Visibility: "(default | public | protected | private)" {
 
 }
 
-PrimDataType: (boolean | byte | char | double | float | short | long | int)
+PrimDataType: "(boolean | byte | char | double | float | short | long | int)" {
 
+}
+UtilType: "('Scanner' | 'String')" {
+
+}
+DataType: "(PrimDataType | UtilType)" {
+
+}
+ReturnType: "(PrimDataType | UtilType | void)" {
+
+}
+
+
+// statements
+PackageClass: "(('*' | Identifier) ('.' ('*' | Identifier))*)" {
+
+}
+ImportStatement: "(import Indent PackageClass semicolon)" {
+
+}
+
+Argument: "(DataType Indent Identifier)" {
+
+}
+ArgumentList: "(lparen (Argument (comma Indent Argument)*)? rparen Indent Block)" {
+
+}
+// Function checked
+Function: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList)" {
+
+}
+DecLiteral: "('0' | ([1-9][0-9]*))" {
+
+}
+EQ: "(Expr Indent '==' Indent Expr)" {
+
+}
+NEQ: "(Expr Indent '!=' Indent Expr)" {
+
+}
+LE: "(Expr Indent '<' Indent Expr)" {
+
+}
+GE: "(Expr Indent '>' Indent Expr)" {
+
+}
+LEQ: "(Expr Indent '<=' Indent Expr)" {
+
+}
+GEQ: "(Expr Indent '>=' Indent Expr)" {
+
+}
+
+Comparison: "(EQ | NEQ | LEQ | LE | GEQ | GE)" {
+
+}
+Increment: "(Identifier '++')" {
+
+}
+Decrement: "(Identifier '--')" {
+
+}
+Expr: "(Comparison | Increment | DecLiteral | Identifier)" {
+
+}
+Declaration: "(DataType Indent Identifier equals Expr (comma Indent Identifier equals Expr)*)" {
+
+}
+Statement: "(Declaration semicolon)" {
+
+}
+Block: "(lbracket Indent ((Function | Statement) Indent)* rbracket)" {
+
+}
+Class: "(Visibility Indent class Indent Identifier (Indent extends Indent Identifier)? (Indent implements Indent Identifier (comma Indent Identifier)*)? Indent Block)" {
+
+}
+Branch: "(semicolon | Statement | Block)" {
+
+}
+ForLoop: "(for Indent lparen Declaration? semicolon Indent Expr? semicolon Indent Expr? rparen Indent Branch)" {
+
+}
+WhileLoop: "(while Indent lparen Expr rparen Indent Branch)" {
+
+}
+DoWhileLoop: "(do Indent Branch Indent while Indent lparen Expr rparen semicolon)" {
+
+}
+IfStatement: "(if Indent lparen Expr rparen Indent Branch (Indent else Indent if Indent lparen Expr rparen Indent Branch)* (Indent else Indent Branch)?)" {
+
+}
