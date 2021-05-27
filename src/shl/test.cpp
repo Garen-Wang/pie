@@ -3,6 +3,7 @@
 //
 #include <peg_parser/generator.h>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -30,6 +31,7 @@ typedef peg_parser::ParserGenerator<std::shared_ptr<SyntaxHighlightInfos>, Parse
 
 class Colors {
 private:
+  // not wise to use *unordered_set* here, try *unordered_map*
   std::unordered_set<std::string> colors;
 public:
   std::string getExpr() {
@@ -52,31 +54,20 @@ void changeAttr(Attr attr, int begin, int end) {
   std::cout << "from " << begin << " to " << end << ", set" << attr << std::endl;
 }
 
-int main() {
-  color.append("black");
-  color.append("grey");
-  color.append("shallow_yellow");
-  color.append("blue");
-  color.append("cyan");
-  color.append("purple");
-  color.append("green");
+ParserBuilder generateParserBuilder(Colors& colors) {
   ParserBuilder g;
   g.setSeparator(g["Separators"] << "['\t''\n' ]");
   g["Identifier"] << "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" >> [](auto s, Parser&) {
     return nullptr;
-//    return s.string();
   };
   g["GrammarExpr"] << R"(('"' (!'"' .)* '"'))" >> [](auto, Parser&) {
     return nullptr;
-//    return "GrammarExpr";
   };
   g["Indent"] << "(['\t''\n' ]*)" >> [](auto, Parser&) {
     return nullptr;
-//    return "Indent";
   };
   g["EmptyBlock"] << "('{' Indent '}')" >> [](auto, Parser&) {
     return nullptr;
-//    return "EmptyBlock";
   };
   g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >> [](auto s, Parser& gen) {
     auto ret = std::make_shared<SyntaxHighlightInfos>();
@@ -86,7 +77,6 @@ int main() {
   };
   g["equals"] << "(Indent '=' Indent)" >> [](auto, Parser&) {
     return nullptr;
-//    return "equals";
   };
   g["MultiBlock"] << "('{' ['\t''\n' ]* ('$' (Index equals Attr ['\t''\n' ]*))* '}')" >> [](auto s, Parser& gen) {
     auto ret = std::make_shared<SyntaxHighlightInfos>();
@@ -99,35 +89,29 @@ int main() {
       ret->push_back(SyntaxHighlightInfo(idx, attr));
     }
     return ret;
-//    return "MultiBlock";
   };
   g["Block"] << "(EmptyBlock | OnlyBlock | MultiBlock)";
   g["Index"] << "(('0') | ([1-9][0-9]*))" >> [](auto s, Parser&) {
     return nullptr;
-//    return s.string();
   };
   g["underlined"] << "'underlined'" >> [](auto, Parser&) {
     return nullptr;
-//    return "underlined";
   };
   g["bold"] << "'bold'" >> [](auto, Parser&) {
     return nullptr;
-//    return "bold";
   };
   g["italic"] << "'italic'" >> [](auto, Parser&) {
     return nullptr;
-//    return "italic";
   };
-  g["Color"] << color.getExpr() >> [](auto s, Parser&) {
+  g["Color"] << colors.getExpr() >> [](auto s, Parser&) {
     return nullptr;
-//    return s.string();
   };
   g["Attr"] << "(((underlined | bold | italic) Indent)* Color)" >> [](auto s, Parser&) {
     Attr attr;
     auto ret = std::make_shared<SyntaxHighlightInfos>();
 
     for (int i = 0; i < s.size(); i += 2) {
-//      std::cout << s[i].evaluate() << " ";
+      //      std::cout << s[i].evaluate() << " ";
       attr += s[i].string() + " ";
     }
     ret->push_back(SyntaxHighlightInfo(attr));
@@ -135,72 +119,56 @@ int main() {
   };
   g["Comment"] << "('//' (!'\n' .)*)" >> [](auto, Parser&) {
     return nullptr;
-//    return "Comment";
   };
-  // integrated
+
+  // markers integrated
   g["lparen"] << "('(')" >> [](auto, Parser&) {
     return nullptr;
-//    return "lparen";
   };
   g["rparen"] << "('(')" >> [](auto, Parser&) {
     return nullptr;
-//    return "rparen";
   };
   g["langle"] << "('<')" >> [](auto, Parser&) {
     return nullptr;
-//    return "langle";
   };
   g["rangle"] << "('>')" >> [](auto, Parser&) {
     return nullptr;
-//    return "rangle";
   };
   g["comma"] << "(',')" >> [](auto, Parser&) {
     return nullptr;
-//    return "comma";
   };
   g["colon"] << "(':')" >> [](auto, Parser&) {
     return nullptr;
-//    return "colon";
   };
   g["semicolon"] << "(';')" >> [](auto, Parser&) {
     return nullptr;
-//    return "semicolon";
   };
   g["single_quote"] << "([\'])" >> [](auto, Parser&) {
     return nullptr;
-//    return "single_quote";
   };
   g["double_quote"] << "('\"')" >> [](auto, Parser&) {
     return nullptr;
-//    return "double_quote";
   };
   g["backslash"] << "('\\\\')" >> [](auto, Parser&) {
     return nullptr;
-//    return "backslash";
   };
   g["single_equal"] << "('=')" >> [](auto, Parser&) {
     return nullptr;
-//    return "single_equal";
   };
   g["double_equal"] << "('==')" >> [](auto, Parser&) {
     return nullptr;
-//    return "double_equal";
   };
   g["newline"] << "('\n')" >> [](auto, Parser&) {
     return nullptr;
-//    return "newline";
   };
   g["until_newline"] << "((!'\n' .)*)" >> [](auto, Parser&) {
     return nullptr;
-//    return "until_newline";
   };
   g["tab"] << "('\t')" >> [](auto, Parser&) {
     return nullptr;
-//    return "tab";
   };
   g["space"] << "(' ')" >> [](auto, Parser&) {
     return nullptr;
-//    return "space";
   };
 
   g["InitParserBuilder"] << "''" >> [](auto, Parser& gen) {
@@ -265,43 +233,104 @@ int main() {
     std::cout << identifier << ": " << grammarExpr << std::endl;
     // std::cout << identifier << std::endl;
     gen[identifier] << grammarExpr >> [&](auto ss) {
-//      std::cout << identifier << std::endl;
+      //      std::cout << identifier << std::endl;
       return "test";
     };
-//    gen[identifier] << grammarExpr >> [&](auto ss) {
-//      for (auto it = syntaxHighlightInfos->begin(); it != syntaxHighlightInfos->end(); ++it) {
-//        changeAttr(it->attr, ss[it->idx].position(), ss[it->idx].position() + ss[it->idx].length());
-//      }
-//      return identifier;
-//    };
+    //    gen[identifier] << grammarExpr >> [&](auto ss) {
+    //      for (auto it = syntaxHighlightInfos->begin(); it != syntaxHighlightInfos->end(); ++it) {
+    //        changeAttr(it->attr, ss[it->idx].position(), ss[it->idx].position() + ss[it->idx].length());
+    //      }
+    //      return identifier;
+    //    };
     return nullptr;
   };
   g["Program"] << "(InitParserBuilder (Grammar | Comment)*)";
   g["Test"] << "Identifier ':' GrammarExpr MultiBlock";
   g.setStart(g["Program"]);
-//  g.setStart(g["Program"]);
+  return g;
+}
 
-  std::ifstream ifs("../src/cpp/cpp.shl");
+Colors getPredefinedColors() {
+  Colors colors;
+  colors.append("black");
+  colors.append("grey");
+  colors.append("shallow_yellow");
+  colors.append("blue");
+  colors.append("cyan");
+  colors.append("purple");
+  colors.append("green");
+  return colors;
+}
+
+enum class LanguageType {
+  CPP,
+  JAVA,
+  PYTHON,
+  JSON
+};
+
+std::pair<bool, Parser> generateParserFromSHL(const std::string& filename, bool test=false) {
+  Colors colors = getPredefinedColors();
+  ParserBuilder g = generateParserBuilder(colors);
+  std::ifstream ifs(filename);
   std::string shlFile((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-//  std::cout << shlFile << std::endl;
+  Parser gen;
+  bool flag = true;
   try {
-    Parser gen;
     auto output = g.run(shlFile, gen);
+    std::cout << "Parsing result: " << output << std::endl;
+
     gen.setSeparator(gen["Separators"] << "['\t''\n' ]");
 
     gen["Program"] << "Identifier";
     gen.setStart(gen["Program"]);
-    std::cout << "Parsing result: " << output << std::endl;
-    std::string anotherInput;
-    std::getline(std::cin, anotherInput);
-    try {
-      auto anotherOutput = gen.run(anotherInput);
-      std::cout << "Parsing result: " << anotherOutput << std::endl;
-    } catch (peg_parser::SyntaxError &ee) {
-      std::cout << "GeneratedParser: Syntax error when parsing " << ee.syntax->rule->name << std::endl;
+
+    if (test) {
+      // test a line
+      std::string anotherInput;
+      std::getline(std::cin, anotherInput);
+      try {
+        auto anotherOutput = gen.run(anotherInput);
+        std::cout << "Parsing result: " << anotherOutput << std::endl;
+      } catch (peg_parser::SyntaxError &ee) {
+        std::cout << "GeneratedParser: Syntax error when parsing " << ee.syntax->rule->name << std::endl;
+      }
     }
   } catch (peg_parser::SyntaxError &e) {
+    flag = false;
     std::cout << "ParserBuilder: Syntax error when parsing " << e.syntax->rule->name << std::endl;
   }
+  return std::make_pair(flag, gen);
+}
+
+std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
+  switch (languageType) {
+    case LanguageType::CPP: {
+      return generateParserFromSHL("../src/cpp/cpp.shl");
+    }
+    case LanguageType::JAVA: {
+      return generateParserFromSHL("../src/java/java.shl");
+    }
+    case LanguageType::PYTHON: {
+      return generateParserFromSHL("../src/python/python3.shl");
+    }
+    case LanguageType::JSON: {
+      return generateParserFromSHL("../src/json/json.shl");
+    }
+    default: {
+      throw std::runtime_error("Not implemented yet");
+    }
+  }
+}
+
+int main(int argc, char **argv) {
+  std::string filename;
+  for (int i = 1; i < argc; ++i) {
+    if (!strcmp(argv[i], "-f")) {
+      if (i + 1 < argc) filename = argv[i + 1];
+      else throw std::invalid_argument("Arguments format error.");
+    }
+  }
+  auto result = generateParserFromSHL("../src/cpp/cpp.shl", true);
   return 0;
 }
