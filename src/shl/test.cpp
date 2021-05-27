@@ -49,7 +49,7 @@ public:
 Colors color;
 
 void changeAttr(Attr attr, int begin, int end) {
-
+  std::cout << "from " << begin << " to " << end << ", set" << attr << std::endl;
 }
 
 int main() {
@@ -66,7 +66,7 @@ int main() {
     return nullptr;
 //    return s.string();
   };
-  g["GrammarExpr"] << "('\"' (!'\"' .)* '\"')" >> [](auto, Parser&) {
+  g["GrammarExpr"] << R"(('"' (!'"' .)* '"'))" >> [](auto, Parser&) {
     return nullptr;
 //    return "GrammarExpr";
   };
@@ -259,8 +259,15 @@ int main() {
 
   g["Grammar"] << "(Identifier ':' GrammarExpr Block)" >> [&](auto s, Parser& gen) {
     auto identifier = s[0].string();
-    auto grammarExpr = s[1].string();
+    auto grammarExpr = s[1].string().substr(1, s[1].string().length() - 2);
     auto syntaxHighlightInfos = s[2].evaluate(gen);
+    // DEBUG
+    std::cout << identifier << ": " << grammarExpr << std::endl;
+    // std::cout << identifier << std::endl;
+    gen[identifier] << grammarExpr >> [&](auto ss) {
+//      std::cout << identifier << std::endl;
+      return "test";
+    };
 //    gen[identifier] << grammarExpr >> [&](auto ss) {
 //      for (auto it = syntaxHighlightInfos->begin(); it != syntaxHighlightInfos->end(); ++it) {
 //        changeAttr(it->attr, ss[it->idx].position(), ss[it->idx].position() + ss[it->idx].length());
@@ -274,14 +281,15 @@ int main() {
   g.setStart(g["Program"]);
 //  g.setStart(g["Program"]);
 
-  std::ifstream ifs("../src/cpp/cpp_test.shl");
+  std::ifstream ifs("../src/cpp/cpp.shl");
   std::string shlFile((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 //  std::cout << shlFile << std::endl;
   try {
     Parser gen;
     auto output = g.run(shlFile, gen);
     gen.setSeparator(gen["Separators"] << "['\t''\n' ]");
-    gen["Program"] << "lparen" >> [](auto) { return "returnValue"; };
+
+    gen["Program"] << "Identifier";
     gen.setStart(gen["Program"]);
     std::cout << "Parsing result: " << output << std::endl;
     std::string anotherInput;
