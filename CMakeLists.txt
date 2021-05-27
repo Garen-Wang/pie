@@ -57,8 +57,8 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 project(shl)
 
 add_executable(shl
-    src/shl/test.cpp
-)
+    src/shl/main.cpp
+    include/shl/parser_builder.h)
 
 target_include_directories(shl
     PRIVATE

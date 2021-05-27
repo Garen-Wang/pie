@@ -1,54 +1,34 @@
 //
 // Created by garen on 5/23/21.
 //
-#include <peg_parser/generator.h>
-#include <cassert>
-#include <cstring>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <string_view>
-#include <unordered_set>
-#include <utility>
+#include "shl/parser_builder.h"
 
-using Attr = std::string;
-class SyntaxHighlightInfo {
-public:
-  int idx = 0;
-  Attr attr;
-  explicit SyntaxHighlightInfo(Attr attr) {
-    idx = -1;
-    this->attr = std::move(attr);
-  }
-  explicit SyntaxHighlightInfo(int idx, Attr attr) {
-    this->idx = idx;
-    this->attr = std::move(attr);
-  }
-};
-typedef std::vector<SyntaxHighlightInfo> SyntaxHighlightInfos;
-typedef peg_parser::ParserGenerator<std::string> Parser;
-typedef peg_parser::ParserGenerator<std::shared_ptr<SyntaxHighlightInfos>, Parser&> ParserBuilder;
+SyntaxHighlightInfo::SyntaxHighlightInfo(Attr attr) {
+  this->idx = -1;
+  this->attr = std::move(attr);
+}
 
-class Colors {
-private:
-  // not wise to use *unordered_set* here, try *unordered_map*
-  std::unordered_set<std::string> colors;
-public:
-  std::string getExpr() {
-    std::string expr = "(";
-    for (const std::string& color : colors) {
-      expr += "'" + color + "'|";
-    }
-    expr.pop_back();
-    expr += ")";
-    return expr;
+SyntaxHighlightInfo::SyntaxHighlightInfo(int idx, Attr attr) {
+  this->idx = idx;
+  this->attr = std::move(attr);
+}
+
+
+std::string Colors::getExpr() {
+  std::string expr = "(";
+  for (const std::string& color : colors) {
+    expr += "'" + color + "'|";
   }
-  // hope all string in `colors` are lowercase
-  void append(const std::string& color) {
-    colors.insert(color);
-  }
-};
-Colors color;
+  expr.pop_back();
+  expr += ")";
+  return expr;
+}
+
+void Colors::append(const std::string &color) {
+  colors.insert(color);
+}
+
+// boundary
 
 void changeAttr(Attr attr, int begin, int end) {
   std::cout << "from " << begin << " to " << end << ", set" << attr << std::endl;
@@ -177,7 +157,7 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     gen["lparen"] << "('(')" >> [](auto) {
       return "lparen";
     };
-    gen["rparen"] << "('(')" >> [](auto) {
+    gen["rparen"] << "(')')" >> [](auto) {
       return "rparen";
     };
     gen["langle"] << "('<')" >> [](auto) {
@@ -185,6 +165,12 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     };
     gen["rangle"] << "('>')" >> [](auto) {
       return "rangle";
+    };
+    gen["lbracket"] << "('{')" >> [](auto) {
+      return "lbracket";
+    };
+    gen["rbracket"] << "('}')" >> [](auto) {
+      return "rbracket";
     };
     gen["comma"] << "(',')" >> [](auto) {
       return "comma";
@@ -207,6 +193,9 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     gen["single_equal"] << "('=')" >> [](auto) {
       return "single_equal";
     };
+    gen["equals"] << "Indent single_equal Indent" >> [](auto) {
+      return "equals";
+    };
     gen["double_equal"] << "('==')" >> [](auto) {
       return "double_equal";
     };
@@ -221,6 +210,9 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     };
     gen["space"] << "(' ')" >> [](auto) {
       return "space";
+    };
+    gen["Indent"] << "(['\t''\n' ]*)" >> [](auto) {
+      return "Indent";
     };
     return nullptr;
   };
@@ -262,14 +254,7 @@ Colors getPredefinedColors() {
   return colors;
 }
 
-enum class LanguageType {
-  CPP,
-  JAVA,
-  PYTHON,
-  JSON
-};
-
-std::pair<bool, Parser> generateParserFromSHL(const std::string& filename, bool test=false) {
+std::pair<bool, Parser> generateParserFromSHL(const std::string& filename) {
   Colors colors = getPredefinedColors();
   ParserBuilder g = generateParserBuilder(colors);
   std::ifstream ifs(filename);
@@ -278,24 +263,7 @@ std::pair<bool, Parser> generateParserFromSHL(const std::string& filename, bool 
   bool flag = true;
   try {
     auto output = g.run(shlFile, gen);
-    std::cout << "Parsing result: " << output << std::endl;
-
-    gen.setSeparator(gen["Separators"] << "['\t''\n' ]");
-
-    gen["Program"] << "Identifier";
-    gen.setStart(gen["Program"]);
-
-    if (test) {
-      // test a line
-      std::string anotherInput;
-      std::getline(std::cin, anotherInput);
-      try {
-        auto anotherOutput = gen.run(anotherInput);
-        std::cout << "Parsing result: " << anotherOutput << std::endl;
-      } catch (peg_parser::SyntaxError &ee) {
-        std::cout << "GeneratedParser: Syntax error when parsing " << ee.syntax->rule->name << std::endl;
-      }
-    }
+//    std::cout << "Parsing result: " << output << std::endl;
   } catch (peg_parser::SyntaxError &e) {
     flag = false;
     std::cout << "ParserBuilder: Syntax error when parsing " << e.syntax->rule->name << std::endl;
@@ -324,13 +292,32 @@ std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
 }
 
 int main(int argc, char **argv) {
-  std::string filename;
+  std::string shlFileName, testFileName;
   for (int i = 1; i < argc; ++i) {
     if (!strcmp(argv[i], "-f")) {
-      if (i + 1 < argc) filename = argv[i + 1];
+      if (i + 1 < argc) shlFileName = argv[i + 1];
+      else throw std::invalid_argument("Arguments format error.");
+    } else if (!strcmp(argv[i], "-t")) {
+      if (i + 1 < argc) testFileName = argv[i + 1];
       else throw std::invalid_argument("Arguments format error.");
     }
   }
-  auto result = generateParserFromSHL("../src/cpp/cpp.shl", true);
+//  auto result = generateParserFromSHL(shlFileName);
+  auto result = generateParserFromSHL("../src/java/java.shl");
+  auto gen = result.second;
+  gen["Program"] << "IfStatement";
+  gen.setStart(gen["Program"]);
+
+  testFileName = "../src/java/tests/test.java";
+  if (!testFileName.empty()) {
+    std::ifstream ifs(testFileName);
+    std::string testInput((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    try {
+      auto testOutput = gen.run(testInput);
+      std::cout << "Parsing result: " << testOutput << std::endl;
+    } catch (peg_parser::SyntaxError &e) {
+      std::cout << "Syntax error when parsing " << e.syntax->rule->name << std::endl;
+    }
+  }
   return 0;
 }
