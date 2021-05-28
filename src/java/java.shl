@@ -8,6 +8,7 @@ interface: "('interface')" { }
 
 synchronized: "('synchronized')" { }
 final: "('final')" { }
+String: "('String')" { }
 boolean: "('boolean')" { }
 byte: "('byte')" { }
 char: "('char')" { }
@@ -22,7 +23,7 @@ super: "('super')" { }
 return: "('return')" { }
 
 new: "('new')" { }
-
+null: "('null')" { }
 abstract: "('abstract')" { }
 static: "('static')" { }
 default: "('default')" { }
@@ -58,16 +59,16 @@ Visibility: "(default | public | protected | private)" {
 
 }
 
-PrimDataType: "(boolean | byte | char | double | float | short | long | int)" {
+PrimDataType: "(boolean | byte | char | double | float | short | long | int | String)" {
 
 }
-UtilType: "('Scanner' | 'String')" {
+PackageDataType: "((Identifier '.')* Identifier)" {
 
 }
-DataType: "((PrimDataType | UtilType) '[]'*)" {
+DataType: "((PrimDataType | PackageDataType) '[]'*)" {
 
 }
-ReturnType: "(PrimDataType | UtilType | void)" {
+ReturnType: "(DataType | void)" {
 
 }
 
@@ -90,7 +91,7 @@ ArgumentList: "(lparen (Argument (comma Indent Argument)*)? rparen Indent Block)
 Method: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList)" {
 
 }
-DecLiteral: "('-'? (([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-') [0-9]*)?)" {
+DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-') [0-9]*)?)" {
 
 }
 HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
@@ -109,7 +110,7 @@ StringLiteral: "(double_quote CharAtomic* double_quote)" {
 CharLiteral: "(single_quote CharAtomic single_quote)" {
 
 }
-Literal: "(DecLiteral | HexLiteral | OctLiteral | BoolLiteral | CharLiteral | StringLiteral)" {
+Literal: "(DecLiteral | HexLiteral | OctLiteral | BoolLiteral | CharLiteral | StringLiteral | null)" {
 
 }
 EQ: "(Expr Indent '==' Indent Expr)" {
@@ -130,6 +131,7 @@ LEQ: "(Expr Indent '<=' Indent Expr)" {
 GEQ: "(Expr Indent '>=' Indent Expr)" {
 
 }
+
 ADD: "(Expr Indent '+' Indent Expr)" {
 
 }
@@ -145,6 +147,22 @@ DIV: "(Expr Indent '/' Indent Expr)" {
 MOD: "(Expr Indent '%' Indent Expr)" {
 
 }
+SELF_ADD: "(Expr Indent '+=' Indent Expr)" {
+
+}
+SELF_SUB: "(Expr Indent '-=' Indent Expr)" {
+
+}
+SELF_MUL: "(Expr Indent '*=' Indent Expr)" {
+
+}
+SELF_DIV: "(Expr Indent '/=' Indent Expr)" {
+
+}
+SELF_MOD: "(Expr Indent '%=' Indent Expr)" {
+
+}
+
 INC: "(Identifier '++' | '++' Identifier)" {
 
 }
@@ -166,10 +184,19 @@ B_AND: "(Expr Indent '&' Indent Expr)" {
 B_OR: "(Expr Indent '|' Indent Expr)" {
 
 }
+SELF_B_AND: "(Expr Indent '&=' Indent Expr)" {
+
+}
+SELF_B_OR: "(Expr Indent '|=' Indent Expr)" {
+
+}
 B_NOT: "('~' Expr)" {
 
 }
 XOR: "(Expr Indent '^' Indent Expr)" {
+
+}
+SELF_XOR: "(Expr Indent '^=' Indent Expr)" {
 
 }
 LSH: "(Expr Indent '<<' Indent Expr)" {
@@ -181,22 +208,36 @@ RSH: "(Expr Indent '>>' Indent Expr)" {
 U_RSH: "(Expr Indent '>>>' Indent Expr)" {
 
 }
+SELF_LSH: "(Expr Indent '<<=' Indent Expr)" {
+
+}
+SELF_RSH: "(Expr Indent '>>=' Indent Expr)" {
+
+}
 Comparison: "(EQ | NEQ | LEQ | LE | GEQ | GE | AND | OR | NOT)" {
 
 }
-Atomic: "(ADD | SUB | MUL | DIV | MOD | INC | DEC | B_AND | B_OR | B_NOT | XOR | LSH | RSH | U_RSH)" {
+Atomic: "(ADD | SUB | MUL | DIV | MOD | INC | DEC | B_AND | B_OR | B_NOT | XOR | LSH | RSH | U_RSH | SELF_ADD | SELF_SUB | SELF_MUL | SELF_DIV | SELF_MOD | SELF_B_AND | SELF_B_OR | SELF_XOR | SELF_LSH | SELF_RSH)" {
 
 }
 ParenExpr: "('(' Expr ')')" {
 
 }
-ParameterList: "((lparen rparen) | (lparen Expr (comma Indent Expr)* rparen))" {
+ParameterList: "(lparen (Expr (comma Indent Expr)*)? rparen)" {
 
 }
-ClassExpr: "((Identifier '.')* Identifier ParameterList?)" {
+TemplateList: "langle  ((DataType) (comma Indent DataType)*)?  rangle" {
 
 }
-Expr: "(Atomic | Comparison | ClassExpr | Literal | ParenExpr)" {
+NewExpr: "(new Indent (Identifier ('.' Identifier)*) TemplateList? ParameterList)" {
+
+}
+ClassExpr: "(((NewExpr | Identifier)'.')* Identifier ParameterList?)" {
+
+}
+// TODO: bugs here
+// NewExpr and ClassExpr, how to arrange the order??????????????????????????????????????
+Expr: "(Atomic | Comparison | NewExpr | ClassExpr | Literal | Identifier | ParenExpr)" {
 
 }
 Declaration: "(DataType Indent Identifier equals Expr (comma Indent Identifier equals Expr)*)" {
@@ -205,7 +246,13 @@ Declaration: "(DataType Indent Identifier equals Expr (comma Indent Identifier e
 DeclarationStatement: "(Declaration semicolon)" {
 
 }
-Statement: "(DeclarationStatement | IfStatement | ForLoop | WhileLoop | DoWhileLoop)" {
+ExprStatement: "(Expr semicolon)" {
+
+}
+ReturnStatement: "(return (Indent Expr)? semicolon)" {
+
+}
+Statement: "(DeclarationStatement | ExprStatement | ReturnStatement | IfStatement | ForLoop | WhileLoop | DoWhileLoop)" {
 
 }
 Block: "(lbrace Indent ((Method | Statement) Indent)* rbrace)" {

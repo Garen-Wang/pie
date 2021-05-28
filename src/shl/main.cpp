@@ -284,7 +284,7 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     // CharAtomic is provided here
     // sorry, '\0' cannot be expressed in preset grammar
     // not contain single_quote and double_quote
-    gen["CharAtomic"] << "([a-zA-Z0-9] | space | excl | hash | dollar | percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | slash | lbracket | backslash | rbracket | caret | underscore | back_quote | lbrace | vertical_bar | rbrace | tilda | bell | backspace | tab | newline | carriage_ret)";
+    gen["CharAtomic"] << "(backslash? ([a-zA-Z0-9] | space | excl | hash | dollar | percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | slash | lbracket | backslash | rbracket | caret | underscore | back_quote | lbrace | vertical_bar | rbrace | tilda))";
 
 
     return nullptr;
@@ -379,6 +379,7 @@ int main(int argc, char **argv) {
   auto result = generateParserFromSHL("../src/java/java.shl");
   auto gen = result.second;
   gen["Program"] << "ImportStatement* Class+";
+//  gen["Program"] << "Expr";
   gen.setStart(gen["Program"]);
 
   testFileName = "../src/java/tests/test.java";
