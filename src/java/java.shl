@@ -64,7 +64,7 @@ PrimDataType: "(boolean | byte | char | double | float | short | long | int)" {
 UtilType: "('Scanner' | 'String')" {
 
 }
-DataType: "(PrimDataType | UtilType)" {
+DataType: "((PrimDataType | UtilType) '[]'*)" {
 
 }
 ReturnType: "(PrimDataType | UtilType | void)" {
@@ -86,11 +86,30 @@ Argument: "(DataType Indent Identifier)" {
 ArgumentList: "(lparen (Argument (comma Indent Argument)*)? rparen Indent Block)" {
 
 }
-// Function checked
-Function: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList)" {
+// Method checked
+Method: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList)" {
 
 }
-DecLiteral: "('0' | ([1-9][0-9]*))" {
+DecLiteral: "('-'? (([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-') [0-9]*)?)" {
+
+}
+HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
+
+}
+OctLiteral: "('-'? '0' [0-7]+)" {
+
+}
+BoolLiteral: "(true | false)" {
+
+}
+// CharAtomic will be provided in preset
+StringLiteral: "(double_quote CharAtomic* double_quote)" {
+
+}
+CharLiteral: "(single_quote CharAtomic single_quote)" {
+
+}
+Literal: "(DecLiteral | HexLiteral | OctLiteral | BoolLiteral | CharLiteral | StringLiteral)" {
 
 }
 EQ: "(Expr Indent '==' Indent Expr)" {
@@ -111,26 +130,85 @@ LEQ: "(Expr Indent '<=' Indent Expr)" {
 GEQ: "(Expr Indent '>=' Indent Expr)" {
 
 }
-
-Comparison: "(EQ | NEQ | LEQ | LE | GEQ | GE)" {
-
-}
-Increment: "(Identifier '++')" {
+ADD: "(Expr Indent '+' Indent Expr)" {
 
 }
-Decrement: "(Identifier '--')" {
+SUB: "(Expr Indent '-' Indent Expr)" {
 
 }
-Expr: "(Comparison | Increment | DecLiteral | Identifier)" {
+MUL: "(Expr Indent '*' Indent Expr)" {
+
+}
+DIV: "(Expr Indent '/' Indent Expr)" {
+
+}
+MOD: "(Expr Indent '%' Indent Expr)" {
+
+}
+INC: "(Identifier '++' | '++' Identifier)" {
+
+}
+DEC: "(Identifier '--' | '--' Identifier)" {
+
+}
+AND: "(Expr Indent '&&' Indent Expr)" {
+
+}
+OR: "(Expr Indent '||' Indent Expr)" {
+
+}
+NOT: "('!' Expr)" {
+
+}
+B_AND: "(Expr Indent '&' Indent Expr)" {
+
+}
+B_OR: "(Expr Indent '|' Indent Expr)" {
+
+}
+B_NOT: "('~' Expr)" {
+
+}
+XOR: "(Expr Indent '^' Indent Expr)" {
+
+}
+LSH: "(Expr Indent '<<' Indent Expr)" {
+
+}
+RSH: "(Expr Indent '>>' Indent Expr)" {
+
+}
+U_RSH: "(Expr Indent '>>>' Indent Expr)" {
+
+}
+Comparison: "(EQ | NEQ | LEQ | LE | GEQ | GE | AND | OR | NOT)" {
+
+}
+Atomic: "(ADD | SUB | MUL | DIV | MOD | INC | DEC | B_AND | B_OR | B_NOT | XOR | LSH | RSH | U_RSH)" {
+
+}
+ParenExpr: "('(' Expr ')')" {
+
+}
+ParameterList: "((lparen rparen) | (lparen Expr (comma Indent Expr)* rparen))" {
+
+}
+ClassExpr: "((Identifier '.')* Identifier ParameterList?)" {
+
+}
+Expr: "(Atomic | Comparison | ClassExpr | Literal | ParenExpr)" {
 
 }
 Declaration: "(DataType Indent Identifier equals Expr (comma Indent Identifier equals Expr)*)" {
 
 }
-Statement: "(Declaration semicolon)" {
+DeclarationStatement: "(Declaration semicolon)" {
 
 }
-Block: "(lbracket Indent ((Function | Statement) Indent)* rbracket)" {
+Statement: "(DeclarationStatement | IfStatement | ForLoop | WhileLoop | DoWhileLoop)" {
+
+}
+Block: "(lbrace Indent ((Method | Statement) Indent)* rbrace)" {
 
 }
 Class: "(Visibility Indent class Indent Identifier (Indent extends Indent Identifier)? (Indent implements Indent Identifier (comma Indent Identifier)*)? Indent Block)" {

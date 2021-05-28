@@ -152,8 +152,7 @@ ParserBuilder generateParserBuilder(Colors& colors) {
   };
 
   g["InitParserBuilder"] << "''" >> [](auto, Parser& gen) {
-    // DEBUG
-    std::cout << "hahshfshsd" << std::endl;
+    // preset for parserBuilder
     gen["lparen"] << "('(')" >> [](auto) {
       return "lparen";
     };
@@ -166,11 +165,11 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     gen["rangle"] << "('>')" >> [](auto) {
       return "rangle";
     };
-    gen["lbracket"] << "('{')" >> [](auto) {
-      return "lbracket";
+    gen["lbrace"] << "('{')" >> [](auto) {
+      return "lbrace";
     };
-    gen["rbracket"] << "('}')" >> [](auto) {
-      return "rbracket";
+    gen["rbrace"] << "('}')" >> [](auto) {
+      return "rbrace";
     };
     gen["comma"] << "(',')" >> [](auto) {
       return "comma";
@@ -186,9 +185,6 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     };
     gen["double_quote"] << "('\"')" >> [](auto) {
       return "double_quote";
-    };
-    gen["backslash"] << "('\\\\')" >> [](auto) {
-      return "backslash";
     };
     gen["single_equal"] << "('=')" >> [](auto) {
       return "single_equal";
@@ -214,6 +210,83 @@ ParserBuilder generateParserBuilder(Colors& colors) {
     gen["Indent"] << "(['\t''\n' ]*)" >> [](auto) {
       return "Indent";
     };
+    gen["lbracket"] << "('[')" >> [](auto) {
+      return "lbracket";
+    };
+    gen["rbracket"] << "(']')" >> [](auto) {
+      return "rbracket";
+    };
+    gen["question"] << "('?')" >> [](auto) {
+      return "question";
+    };
+    gen["bell"] << "('\a')" >> [](auto) {
+      return "bell";
+    };
+    gen["backspace"] << "('\b')" >> [](auto) {
+      return "backspace";
+    };
+    gen["carriage_ret"] << "('\r')" >> [](auto) {
+      return "carriage_ret";
+    };
+
+    gen["excl"] << "('!')" >> [](auto) {
+      return "excl";
+    };
+    gen["space"] << "(' ')" >> [](auto) {
+      return "space";
+    };
+    gen["hash"] << "('#')" >> [](auto) {
+      return "hash";
+    };
+    gen["dollar"] << "('$')" >> [](auto) {
+      return "dollar";
+    };
+    gen["percent"] << "('%')" >> [](auto) {
+      return "percent";
+    };
+    gen["ampersand"] << "('&')" >> [](auto) {
+      return "ampersand";
+    };
+    gen["asterisk"] << "('*')" >> [](auto) {
+      return "asterisk";
+    };
+    gen["plus"] << "('+')" >> [](auto) {
+      return "plus";
+    };
+    gen["minus"] << "('-')" >> [](auto) {
+      return "minus";
+    };
+    gen["dot"] << "('.')" >> [](auto) {
+      return "dot";
+    };
+    gen["slash"] << "('/')" >> [](auto) {
+      return "slash";
+    };
+    gen["backslash"] << "('\\\\')" >> [](auto) {
+      return "backslash";
+    };
+    gen["underscore"] << "('_')" >> [](auto) {
+      return "underscore";
+    };
+    gen["caret"] << "('^')" >> [](auto) {
+      return "caret";
+    };
+    gen["back_quote"] << "('`')" >> [](auto) {
+      return "back_quote";
+    };
+    gen["tilda"] << "('~')" >> [](auto) {
+      return "tilda";
+    };
+    gen["vertical_bar"] << "('|')" >> [](auto) {
+      return "vertical_bar";
+    };
+
+    // CharAtomic is provided here
+    // sorry, '\0' cannot be expressed in preset grammar
+    // not contain single_quote and double_quote
+    gen["CharAtomic"] << "([a-zA-Z0-9] | space | excl | hash | dollar | percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | slash | lbracket | backslash | rbracket | caret | underscore | back_quote | lbrace | vertical_bar | rbrace | tilda | bell | backspace | tab | newline | carriage_ret)";
+
+
     return nullptr;
   };
 
@@ -305,7 +378,7 @@ int main(int argc, char **argv) {
 //  auto result = generateParserFromSHL(shlFileName);
   auto result = generateParserFromSHL("../src/java/java.shl");
   auto gen = result.second;
-  gen["Program"] << "IfStatement";
+  gen["Program"] << "ImportStatement* Class+";
   gen.setStart(gen["Program"]);
 
   testFileName = "../src/java/tests/test.java";
