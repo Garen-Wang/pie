@@ -1,20 +1,25 @@
-public class Test {
-  public static void main(String[] args) {
-    String sb = new String("abc");
-    String anotherSb = "abc";
-    if (sb.equals(anotherSb)) System.out.println("sb");
-    else {
-      return 1;
-    }
-    outputTextArea.setText("i\tm(i)\n");
-    double res = 0.0;
-    for(int i = 1; i <= 901; ++i) {
-        if(i % 2 == 1) res += 1.0 / (2 * i - 1);
-        else res -= 1.0 / (2 * i - 1);
-        if((i - 1) % 100 == 0) {
-            outputTextArea.append(new DecimalFormat("0.0000").format(4 * res));
+public class PalindromicPrime {
+    public static void main(String[] args) {
+        for (int i = 2, cnt = 0; ; ++i) {
+            if (isPalindrome(i) && isPrime(i)) {
+                System.out.println(i);
+                ++cnt;
+                if (cnt == 100) break;
+            }
         }
     }
-    JOptionPane.showMessageDialog(null, outputTextArea, "Estimate PI", JOptionPane.INFORMATION_MESSAGE);
-  }
+    public static boolean isPalindrome(int x) {
+        String s = x + "";
+        int len = s.length();
+        for (int i = 0; i <= len / 2; ++i) {
+            if (s.charAt(i) != s.charAt(len - i - 1)) return false;
+        }
+        return true;
+    }
+    public static boolean isPrime(int x) {
+        for (int divisor = 2; divisor * divisor <= x; ++divisor) {
+            if (x % divisor == 0) return false;
+        }
+        return true;
+    }
 }

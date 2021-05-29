@@ -229,15 +229,17 @@ ParameterList: "(lparen (Expr (comma Indent Expr)*)? rparen)" {
 TemplateList: "langle  ((DataType) (comma Indent DataType)*)?  rangle" {
 
 }
-NewExpr: "(new Indent (Identifier ('.' Identifier)*) TemplateList? ParameterList)" {
+NewExpr: "(new Indent DataType TemplateList? ParameterList)" {
 
 }
-ClassExpr: "(((NewExpr | Identifier)'.')* Identifier ParameterList?)" {
+ClassExpr1: "(NewExpr '.' Identifier ParameterList?)" {
 
 }
-// TODO: bugs here
-// NewExpr and ClassExpr, how to arrange the order??????????????????????????????????????
-Expr: "(Atomic | Comparison | NewExpr | ClassExpr | Literal | Identifier | ParenExpr)" {
+// TODO: I think potential bugs will occur here, either ClassExpr1 or ClassExpr2
+ClassExpr2: "((Identifier '.')* Identifier ParameterList?)" {
+
+}
+Expr: "(Atomic | Comparison | ClassExpr1 | NewExpr | ClassExpr2 | Literal | Identifier | ParenExpr)" {
 
 }
 Declaration: "(DataType Indent Identifier equals Expr (comma Indent Identifier equals Expr)*)" {

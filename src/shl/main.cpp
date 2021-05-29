@@ -378,8 +378,8 @@ int main(int argc, char **argv) {
 //  auto result = generateParserFromSHL(shlFileName);
   auto result = generateParserFromSHL("../src/java/java.shl");
   auto gen = result.second;
-  gen["Program"] << "ImportStatement* Class+";
-//  gen["Program"] << "Expr";
+  gen["Program"] << "ImportStatement* Class+ newline*";
+//  gen["Program"] << "Statement";
   gen.setStart(gen["Program"]);
 
   testFileName = "../src/java/tests/test.java";
