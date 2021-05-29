@@ -2,35 +2,135 @@
 
 // keywords begin
 
+and: "('and')" {
+
+}
+
+as: "('as')" {
+
+}
+
+assert: "('assert')" {
+
+}
+
+break: "('break')" {
+
+}
+
 class: "'class'" {
 
 }
 
-def: "'def'" {
+continue: "('continue')" {
 
 }
 
-from: "'from'" {
+def: "('def')" {
 
 }
 
-import: "'import'" {
+del: "('del')" {
 
 }
 
-as: "'as'" {
+elif: "('elif')" {
 
 }
 
-if: "'if'" {
+else: "('else')" {
 
 }
 
-elif: "'elif'" {
+except: "('except')" {
 
 }
 
-else: "'else'" {
+False: "('False')" {
+
+}
+
+finally: "('finally')" {
+
+}
+
+for: "('for')" {
+
+}
+
+from: "('from')" {
+
+}
+
+global: "('global')" {
+
+}
+
+if: "('if')" {
+
+}
+
+import: "('import')" {
+
+}
+
+in: "('in')" {
+
+}
+
+is: "('is')" {
+
+}
+
+lambda: "('lambda')" {
+
+}
+
+None: "('None')" {
+
+}
+
+nonlocal: "('nonlocal')" {
+
+}
+
+not: "('not')" {
+
+}
+
+or: "('or')" {
+
+}
+
+pass: "('pass')" {
+
+}
+
+raise: "('raise')" {
+
+}
+
+return: "('return')" {
+
+}
+
+True: "('True')" {
+
+}
+
+try: "('try')" {
+
+}
+
+while: "('while')" {
+
+}
+
+with: "('with')" {
+
+}
+
+yield: "('yield')" {
 
 }
 
