@@ -58,7 +58,7 @@ project(shl)
 
 add_executable(shl
     src/shl/main.cpp
-    include/shl/parser_builder.h)
+    include/shl/parser_builder.h include/shl/presets.h src/shl/presets.cpp src/shl/parser_builder.cpp)
 
 target_include_directories(shl
     PRIVATE

@@ -47,13 +47,6 @@ ParserBuilder generateParserBuilder(Colors& colors);
 
 Colors getPredefinedColors();
 
-enum class LanguageType {
-  CPP,
-  JAVA,
-  PYTHON,
-  JSON
-};
-
 std::pair<bool, Parser> generateParserFromSHL(const std::string& filename);
 
 int main(int argc, char** argv);
