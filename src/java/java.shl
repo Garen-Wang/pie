@@ -1,4 +1,4 @@
-// keywords
+// keywords begin
 package: "('package')" { }
 import: "('import')" { }
 class: "('class')" { }
@@ -50,6 +50,10 @@ switch: "('switch')" { }
 case: "('case')" { }
 
 instanceof: "('instanceof')" { }
+
+// keywords end
+
+// grammar begin
 
 Identifier: "(([a-zA-Z] | '_' | '$') ([a-zA-Z0-9] | '_')*)" {
   black
@@ -278,3 +282,5 @@ DoWhileLoop: "(do Indent Branch Indent while Indent lparen Expr rparen semicolon
 IfStatement: "(if Indent lparen Expr rparen Indent Branch (Indent else Indent if Indent lparen Expr rparen Indent Branch)* (Indent else Indent Branch)?)" {
 
 }
+
+// grammar end
