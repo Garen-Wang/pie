@@ -15,16 +15,19 @@ int main(int argc, char **argv) {
     }
   }
 //  auto result = generateParserFromSHL(shlFileName);
-//  auto result = generateParserFromSHL("../src/java/java.shl");
-//  auto gen = result.second;
-//  gen["Program"] << "ImportStatement* Class+ newline*";
-////  gen["Program"] << "Statement";
-//  gen.setStart(gen["Program"]);
-  auto temp = generateLanguageParser(LanguageType::JAVA);
-  assert(temp.first);
-  auto gen = temp.second;
 
-  testFileName = "../src/java/tests/test.java";
+  auto result = generateParserFromSHL("../src/python/python3.shl");
+  auto gen = result.second;
+  gen["Program"] << "Statement | Expr";
+//  gen["Program"] << "DefHead";
+  gen.setStart(gen["Program"]);
+
+//  auto temp = generateLanguageParser(LanguageType::JAVA);
+//  assert(temp.first);
+//  auto gen = temp.second;
+
+  testFileName = "../src/python/tests/test.py";
+//  testFileName = "../src/java/tests/test.java";
   if (!testFileName.empty()) {
     std::ifstream ifs(testFileName);
     std::string testInput((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
