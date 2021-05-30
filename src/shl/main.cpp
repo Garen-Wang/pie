@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
       else throw std::invalid_argument("Arguments format error.");
     }
   }
-  testFileName = "../src/python/tests/test.py";
+  testFileName = "../src/cpp/tests/test.cpp";
   std::ifstream ifs(testFileName);
   std::string testInput((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 //  auto result = generateParserFromSHL(shlFileName);
@@ -83,20 +83,24 @@ int main(int argc, char **argv) {
 //  gen["Program"] << "DefHead";
 //  gen.setStart(gen["Program"]);
 
-  auto temp = generateLanguageParser(LanguageType::PYTHON);
-  assert(temp.first);
-  auto gen = temp.second;
+//  auto temp = generateLanguageParser(LanguageType::PYTHON);
+//  assert(temp.first);
+//  auto gen = temp.second;
 
-  //  testFileName = "../src/java/tests/test.java";
+  auto result = generateParserFromSHL("../src/cpp/cpp_test.shl");
+  auto gen = result.second;
+  gen["Program"] << "Expr";
+  gen.setStart(gen["Program"]);
+
   try {
     auto testOutput = gen.run(testInput);
     std::cout << "Parsing result: " << testOutput << std::endl;
-    std::cout << blockRecords.size() << std::endl;
-    for (auto x : blockRecords) {
-      std::cout << x.first << ", " << x.second << std::endl;
-      auto t = getLineNumber(testInput, x);
-      std::cout << t.first << ", " << t.second << std::endl;
-    }
+//    std::cout << blockRecords.size() << std::endl;
+//    for (auto x : blockRecords) {
+//      std::cout << x.first << ", " << x.second << std::endl;
+//      auto t = getLineNumber(testInput, x);
+//      std::cout << t.first << ", " << t.second << std::endl;
+//    }
   } catch (peg_parser::SyntaxError &e) {
     std::cout << "Syntax error when parsing " << e.syntax->rule->name << std::endl;
   }
