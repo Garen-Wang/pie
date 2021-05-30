@@ -88,11 +88,12 @@ ImportStatement: "(import Indent PackageClass semicolon)" {
 Argument: "(DataType Indent Identifier)" {
 
 }
-ArgumentList: "(lparen (Argument (comma Indent Argument)*)? rparen Indent Block)" {
+// revised a bug here
+ArgumentList: "(lparen (Argument (comma Indent Argument)*)? rparen)" {
 
 }
 // Method checked
-Method: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList)" {
+Method: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList Indent Block)" {
 
 }
 DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-') [0-9]*)?)" {
