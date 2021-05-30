@@ -4,6 +4,9 @@
 
 #include "shl/presets.h"
 
+std::vector<int> indentDepth;
+std::vector<std::pair<int, int> > blockRecords;
+
 void initSHLGrammar(ParserBuilder& g) {
   g["InitParserBuilder"] << "''" >> [](auto, Parser& gen) {
     // preset for parserBuilder
@@ -146,6 +149,50 @@ void initSHLGrammar(ParserBuilder& g) {
 
     return nullptr;
   };
+  g["indent_aware"] << "('#indent_aware')" >> [](auto s, Parser& gen) {
+    gen["InitBlocks"] << "''" << [&](auto&) -> bool {
+      indentDepth.clear();
+      return true;
+    } >> [](auto) { return "InitBlocks"; };
+    gen["SameIndentation"] << "Indentation" << [&](auto &s) -> bool {
+      return s->length() == indentDepth.back();
+    } >> [](auto) { return "SameIndentation"; };
+    gen["SameIndentation"]->cacheable = false;
+
+    gen["DeepIndentation"] << "Indentation" << [&](auto &s) -> bool {
+      return s->length() > indentDepth.back();
+    } >> [](auto) { return "DeepIndentation"; };
+    gen["DeepIndentation"]->cacheable = false;
+
+    gen["EnterBlock"] << "Indentation" << [&](auto &s) -> bool {
+      if (indentDepth.empty() || s->length() > indentDepth.back()) {
+        indentDepth.push_back(s->length());
+        return true;
+      } else return false;
+    } >> [](auto) { return "EnterBlock"; };
+    gen["EnterBlock"]->cacheable = false;
+
+    gen["Line"] << "SameIndentation Grammar '\n'" >> [](auto) { return "Line"; };
+    gen.getRule("Line")->cacheable = false;
+
+    gen["EmptyLine"] << "Indentation '\n'" >> [](auto) { return "EmptyLine"; };
+
+    gen["ExitBlock"] << "''" << [&](auto&) -> bool {
+      indentDepth.pop_back();
+      return true;
+    } >> [](auto) { return "ExitBlock"; };
+    gen.getRule("ExitBlock")->cacheable = false;
+
+    gen["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >> [&](auto e) {
+      for (auto x : e) x.evaluate();
+      //    blocks.push_back(Block{e.position(), e.length()});
+      //    std::cout << "position: from " << e.position() << " to " << e.position() + e.length() << std::endl;
+      blockRecords.push_back(std::make_pair(e.position(), e.length()));
+      //    std::cout << "line from " << temp.first << " to " << temp.second << std::endl;
+      return "Block";
+    };
+    return nullptr;
+  };
 }
 
 void initParserBuilder(ParserBuilder& g, Colors& colors) {
@@ -234,7 +281,42 @@ void initParserBuilder(ParserBuilder& g, Colors& colors) {
     //    };
     return nullptr;
   };
-  g["Program"] << "(InitParserBuilder (Grammar | Comment)*)";
+  // Shebang: to be continued...
+  g["Shebang"] << "(indent_aware)";
+  g["Program"] << "(InitParserBuilder Shebang? (Grammar | Comment)*)";
   g["Test"] << "Identifier ':' GrammarExpr MultiBlock";
   g.setStart(g["Program"]);
+}
+
+std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
+  switch (languageType) {
+    case LanguageType::CPP: {
+      return generateParserFromSHL("../src/cpp/cpp.shl");
+    }
+    case LanguageType::JAVA: {
+      auto temp = generateParserFromSHL("../src/java/java.shl");
+      if (temp.first) {
+        auto gen = temp.second;
+        gen["Program"] << "ImportStatement* Class+ newline*";
+        gen.setStart(gen["Program"]);
+        return std::make_pair(true, gen);
+      } else return temp;
+    }
+    case LanguageType::PYTHON: {
+      auto temp = generateParserFromSHL("../src/python/python3.shl");
+      if (temp.first) {
+        auto gen = temp.second;
+        gen["Grammar"] << "(Heads | Statement | Expr)";
+        gen["Program"] << "((ImportStatement '\n')* InitBlocks Block)";
+        gen.setStart(gen["Program"]);
+        return std::make_pair(true, gen);
+      } else return temp;
+    }
+    case LanguageType::JSON: {
+      return generateParserFromSHL("../src/json/json.shl");
+    }
+    default: {
+      throw std::runtime_error("Not implemented yet");
+    }
+  }
 }

@@ -49,6 +49,8 @@ Colors getPredefinedColors();
 
 std::pair<bool, Parser> generateParserFromSHL(const std::string& filename);
 
+void initParserBuilder(ParserBuilder& g, Colors& colors);
+
 int main(int argc, char** argv);
 
 #endif //PYTHON_PARSER_PARSER_BUILDER_H

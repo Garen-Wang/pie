@@ -3,7 +3,6 @@
 //
 
 #include "shl/parser_builder.h"
-#include "shl/presets.h"
 
 SyntaxHighlightInfo::SyntaxHighlightInfo(Attr attr) {
   this->idx = -1;
@@ -69,29 +68,4 @@ std::pair<bool, Parser> generateParserFromSHL(const std::string& filename) {
   return std::make_pair(flag, gen);
 }
 
-std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
-  switch (languageType) {
-    case LanguageType::CPP: {
-      return generateParserFromSHL("../src/cpp/cpp.shl");
-    }
-    case LanguageType::JAVA: {
-      auto temp = generateParserFromSHL("../src/java/java.shl");
-      if (temp.first) {
-        auto gen = temp.second;
-        gen["Program"] << "ImportStatement* Class+ newline*";
-        gen.setStart(gen["Program"]);
-        return std::make_pair(true, gen);
-      } else return temp;
-    }
-    case LanguageType::PYTHON: {
-      return generateParserFromSHL("../src/python/python3.shl");
-    }
-    case LanguageType::JSON: {
-      return generateParserFromSHL("../src/json/json.shl");
-    }
-    default: {
-      throw std::runtime_error("Not implemented yet");
-    }
-  }
-}
 

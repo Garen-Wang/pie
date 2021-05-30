@@ -14,8 +14,12 @@ enum class LanguageType {
   JSON,
 };
 
+extern std::vector<int> indentDepth;
+extern std::vector<std::pair<int, int> > blockRecords;
+
 std::pair<bool, Parser> generateLanguageParser(LanguageType languageType);
-void initParserBuilder(ParserBuilder& g, Colors& colors);
 void initSHLGrammar(ParserBuilder &g);
+
+std::pair<long, long> getLineNumber(std::string_view input, std::pair<int, int> blockRecord);
 
 #endif //PYTHON_PARSER_PRESETS_H
