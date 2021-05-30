@@ -211,56 +211,6 @@ void initParserBuilder(ParserBuilder& g, Colors& colors) {
     return nullptr;
   };
 
-  // markers integrated
-  g["lparen"] << "('(')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["rparen"] << "('(')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["langle"] << "('<')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["rangle"] << "('>')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["comma"] << "(',')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["colon"] << "(':')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["semicolon"] << "(';')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["single_quote"] << "([\'])" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["double_quote"] << "('\"')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["backslash"] << "('\\\\')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["single_equal"] << "('=')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["double_equal"] << "('==')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["newline"] << "('\n')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["until_newline"] << "((!'\n' .)*)" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["tab"] << "('\t')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-  g["space"] << "(' ')" >> [](auto, Parser&) {
-    return nullptr;
-  };
-
   initSHLGrammar(g);
   g["Grammar"] << "(Identifier ':' GrammarExpr Block)" >> [&](auto s, Parser& gen) {
     auto identifier = s[0].string();
