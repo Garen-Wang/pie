@@ -64,6 +64,9 @@ void initSHLGrammar(ParserBuilder& g) {
     gen["Indent"] << "(['\t''\n' ]*)" >> [](auto) {
       return "Indent";
     };
+    gen["Indentation"] << "(' '*)" >> [](auto) {
+      return "Indentation";
+    };
     gen["lbracket"] << "('[')" >> [](auto) {
       return "lbracket";
     };
