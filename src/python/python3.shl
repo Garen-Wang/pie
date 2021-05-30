@@ -390,7 +390,7 @@ Variable: "((ClassExpr2) Slice?)" {
 VariableList: "(Variable (comma Indentation Variable)*)" {
 
 }
-
+// TODO: now Expr does not support parentheses, to be continued...
 Expr: "(Atomic | Comparison | Variable | List | Tuple | Dict | StringExpr | Literal)" {
 }
 
