@@ -1,3 +1,4 @@
+#indent_aware
 // python parser and grammar
 
 // keywords begin
@@ -409,7 +410,7 @@ RaiseStatement: "(raise Identifier lparen Expr rparen)" {
 
 }
 
-Statement: "(Assignment | DelStatement | RaiseStatement)" {
+Statement: "(Assignment | GlobalStatement | DelStatement | RaiseStatement)" {
 
 }
 
@@ -421,7 +422,7 @@ ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
 
 }
 
-Global: "(global Indentation IdentifierList)" {
+GlobalStatement: "(global Indentation IdentifierList)" {
 
 }
 
@@ -456,6 +457,10 @@ ExceptHead: "(except (Indentation Identifier)? colon)" {
 
 }
 FinallyHead: "(finally colon)" {
+
+}
+
+Heads: "(DefHead | ClassHead | IfHead | ElifHead | ElseHead | WhileHead | ForHead | TryHead | ExceptHead | FinallyHead)" {
 
 }
 
