@@ -42,12 +42,17 @@ ParserBuilder generateParserBuilder(Colors& colors) {
 Colors getPredefinedColors() {
   Colors colors;
   colors.append("black");
-  colors.append("grey");
+  colors.append("gray");
   colors.append("shallow_yellow");
   colors.append("blue");
   colors.append("cyan");
   colors.append("purple");
   colors.append("green");
+  colors.append("dark_purple");
+  colors.append("orange");
+  colors.append("white");
+  colors.append("yellow");
+  colors.append("pink");
   return colors;
 }
 
