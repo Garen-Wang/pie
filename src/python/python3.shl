@@ -5,166 +5,466 @@
 and: "('and')" {
 
 }
-
 as: "('as')" {
 
 }
-
 assert: "('assert')" {
 
 }
-
 break: "('break')" {
 
 }
-
 class: "'class'" {
 
 }
-
 continue: "('continue')" {
 
 }
-
 def: "('def')" {
 
 }
-
 del: "('del')" {
 
 }
-
 elif: "('elif')" {
 
 }
-
 else: "('else')" {
 
 }
-
 except: "('except')" {
 
 }
-
 False: "('False')" {
 
 }
-
 finally: "('finally')" {
 
 }
-
 for: "('for')" {
 
 }
-
 from: "('from')" {
 
 }
-
 global: "('global')" {
 
 }
-
 if: "('if')" {
 
 }
-
 import: "('import')" {
 
 }
-
 in: "('in')" {
 
 }
-
 is: "('is')" {
 
 }
-
 lambda: "('lambda')" {
 
 }
+None: "('None')" {
 
+}
+nonlocal: "('nonlocal')" {
+
+}
+not: "('not')" {
+
+}
+or: "('or')" {
+
+}
+pass: "('pass')" {
+
+}
+raise: "('raise')" {
+
+}
+return: "('return')" {
+
+}
+True: "('True')" {
+
+}
+try: "('try')" {
+
+}
+while: "('while')" {
+
+}
+with: "('with')" {
+
+}
+yield: "('yield')" {
+
+}
+self: "('self')" {
+
+}
+super: "('super')" {
+
+}
 None: "('None')" {
 
 }
 
-nonlocal: "('nonlocal')" {
+str: "('str')" {
 
 }
-
-not: "('not')" {
-
-}
-
-or: "('or')" {
+int: "('int')" {
 
 }
-
-pass: "('pass')" {
-
-}
-
-raise: "('raise')" {
+float: "('float')" {
 
 }
-
-return: "('return')" {
-
-}
-
-True: "('True')" {
+complex: "('complex')" {
 
 }
-
-try: "('try')" {
-
-}
-
-while: "('while')" {
+list: "('list')" {
 
 }
-
-with: "('with')" {
+tuple: "('tuple')" {
 
 }
+dict: "('dict')" {
 
-yield: "('yield')" {
+}
+set: "('set')" {
+
+}
+frozenset: "('frozenset')" {
+
+}
+bool: "('bool')" {
+
+}
+bytes: "('bytes')" {
+
+}
+bytearray: "('bytearray')" {
+
+}
+memoryview: "('memoryview')" {
 
 }
 
 // keywords end
 
 // grammar begin
-where: "(Identifier ('.' Identifier)*)" {
+Identifier: "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
+
+}
+IdentifierList: "(Identifier (comma Indentation Identifier)*)" {
+
+}
+Where: "(Identifier ('.' Identifier)*)" {
 
 }
 
-ImportStatement: "from where import where as Identifier" {
+ImportStatement: "((from Indentation Where Indentation)? import Indentation (asterisk | Where) (Indentation as Indentation Identifier)?)" {
 
 }
 
-Function: "(def Identifier ArgumentList)" {
+SingleLineComment: "('#' (!newline .)*)" {
+
+}
+MultiLineComment: "(StringLiteral2)" {
 
 }
 
-ArgumentList: "((lparen (Argument (comma Argument)*)? rparen) colon Block)" {
+DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? [0-9]*)?)" {
+
+}
+HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
+
+}
+OctLiteral: "('-'? '0' [0-7]+)" {
+
+}
+BoolLiteral: "(True | False)" {
+
+}
+ImaginaryLiteral: "(DecLiteral 'j')" {
+
+}
+// CharAtomic will be provided in preset
+StringLiteral1: "(double_quote CharAtomic* double_quote)" {
+
+}
+ThreeSingleQuotes: "(single_quote single_quote single_quote)" {
+
+}
+ThreeDoubleQuotes: "(double_quote double_quote double_quote)" {
+
+}
+StringLiteral2: "((ThreeSingleQuotes (!ThreeSingleQuotes .)* ThreeSingleQuotes) | (ThreeDoubleQuotes (!ThreeDoubleQuotes .)* ThreeDoubleQuotes))" {
+
+}
+StringLiteral: "(StringLiteral2 | StringLiteral1)" {
+
+}
+ByteLiteral: "('b' StringLiteral)" {
+
+}
+Literal: "(ImaginaryLiteral | DecLiteral | HexLiteral | OctLiteral | BoolLiteral | StringLiteral | ByteLiteral | None)" {
 
 }
 
-Argument: "(Type Identifier)" {
+// operations
+EQ: "(Expr Indentation '==' Indentation Expr)" {
+
+}
+NEQ: "(Expr Indentation '!=' Indentation Expr)" {
+
+}
+LE: "(Expr Indentation '<' Indentation Expr)" {
+
+}
+GE: "(Expr Indentation '>' Indentation Expr)" {
+
+}
+LEQ: "(Expr Indentation '<=' Indentation Expr)" {
+
+}
+GEQ: "(Expr Indentation '>=' Indentation Expr)" {
 
 }
 
-Class: "class Identifier colon Block" {
+ADD: "(Expr Indentation '+' Indentation Expr)" {
+
+}
+SUB: "(Expr Indentation '-' Indentation Expr)" {
+
+}
+MUL: "(Expr Indentation '*' Indentation Expr)" {
+
+}
+DIV: "(Expr Indentation '/' Indentation Expr)" {
+
+}
+POW: "(Expr Indentation '**' Indentation Expr)" {
+
+}
+FLOOR_DIV: "(Expr Indentation '//' Indentation Expr)" {
+
+}
+MOD: "(Expr Indentation '%' Indentation Expr)" {
+
+}
+SELF_ADD: "(Expr Indentation '+=' Indentation Expr)" {
+
+}
+SELF_SUB: "(Expr Indentation '-=' Indentation Expr)" {
+
+}
+SELF_MUL: "(Expr Indentation '*=' Indentation Expr)" {
+
+}
+SELF_DIV: "(Expr Indentation '/=' Indentation Expr)" {
+
+}
+SELF_FLOOR_DIV: "(Expr Indentation '//=' Indentation Expr)" {
+
+}
+SELF_MOD: "(Expr Indentation '%=' Indentation Expr)" {
+
+}
+SELF_POW: "(Expr Indentation '**=' Indentation Expr)" {
 
 }
 
-Declaration: "Identifier equals Expr" {
+AND: "(Expr Indentation and Indentation Expr)" {
+
+}
+OR: "(Expr Indentation or Indentation Expr)" {
+
+}
+NOT: "(not Indentation Expr)" {
 
 }
 
+B_AND: "(Expr Indentation '&' Indentation Expr)" {
 
+}
+B_OR: "(Expr Indentation '|' Indentation Expr)" {
+
+}
+SELF_B_AND: "(Expr Indentation '&=' Indentation Expr)" {
+
+}
+SELF_B_OR: "(Expr Indentation '|=' Indentation Expr)" {
+
+}
+B_NOT: "('~' Expr)" {
+
+}
+XOR: "(Expr Indentation '^' Indentation Expr)" {
+
+}
+SELF_XOR: "(Expr Indentation '^=' Indentation Expr)" {
+
+}
+LSH: "(Expr Indentation '<<' Indentation Expr)" {
+
+}
+RSH: "(Expr Indentation '>>' Indentation Expr)" {
+
+}
+SELF_LSH: "(Expr Indentation '<<=' Indentation Expr)" {
+
+}
+SELF_RSH: "(Expr Indentation '>>=' Indentation Expr)" {
+
+}
+
+IS: "(Expr Indentation is Indentation Expr)" {
+
+}
+IS_NOT: "(Expr Indentation is Indentation not Indentation Expr)" {
+
+}
+IN: "(Expr Indentation in Indentation Expr)" {
+
+}
+NOT_IN: "(Expr Indentation not Indentation in Indentation Expr)" {
+
+}
+
+Atomic: "(ADD | SUB | MUL | DIV | FLOOR_DIV | MOD | POW | B_AND | B_OR | B_NOT | XOR | LSH | RSH | SELF_ADD | SELF_SUB | SELF_MUL | SELF_DIV | SELF_FLOOR_DIV | SELF_MOD | SELF_POW | SELF_B_AND | SELF_B_OR | SELF_XOR | SELF_LSH | SELF_RSH)" {
+
+}
+
+Comparison: "(EQ | NEQ | LE | GE | LEQ | GEQ | AND | OR | NOT | IS | IS_NOT | IN | NOT_IN)" {
+
+}
+
+// white spaces are not permitted inside any slice, which may cause unexpected syntax error
+Slice1: "(Expr)" {
+
+}
+Slice2: "((Expr? colon Expr?))" {
+
+}
+Slice3: "((Expr? colon Expr? colon Expr?))" {
+
+}
+Slice: "(lbracket (Slice3 | Slice2 | Slice1) (comma Indentation (Slice3 | Slice2 | Slice1))* rbracket)" {
+
+}
+
+List: "(lbracket (Expr (comma Indentation Expr)*)? rbracket)" {
+
+}
+
+Tuple: "(lparen (Expr (comma Indentation Expr)*)? rparen)" {
+
+}
+
+Dict: "(lbrace (Literal Indentation Expr (comma Indentation Literal Indentation Expr)*)? rbrace)" {
+
+}
+
+Parameter: "((Identifier single_equal Expr) | DataType | Expr)" {
+
+}
+
+ParameterList: "(lparen (Parameter (comma Indentation Parameter)*)? rparen)" {
+
+}
+
+// solved *print("sb")*
+ClassExpr2: "(((self | super | Identifier) ParameterList? '.')* (self | super | Identifier) ParameterList?)" {
+
+}
+StringExpr: "(StringLiteral '.' Identifier ParameterList?)" {
+
+}
+
+Variable: "((ClassExpr2) Slice?)" {
+
+}
+VariableList: "(Variable (comma Indentation Variable)*)" {
+
+}
+
+Expr: "(Atomic | Comparison | Variable | List | Tuple | Dict | StringExpr | Literal)" {
+}
+
+ExprList: "(Expr (comma Indentation Expr)*)" {
+
+}
+
+Assignment: "(VariableList (Indentation '=' Indentation ExprList !lparen)+)" {
+
+}
+
+DelStatement: "(del Indentation ClassExpr2)" {
+
+}
+// assume that exception has only one argument
+RaiseStatement: "(raise Identifier lparen Expr rparen)" {
+
+}
+
+Statement: "(Assignment | DelStatement | RaiseStatement)" {
+
+}
+
+Argument: "(self | (asterisk? Identifier (single_equal Expr)?))" {
+
+}
+
+ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
+
+}
+
+Global: "(global Indentation IdentifierList)" {
+
+}
+
+// TODO: only head here, waiting for full expression with block
+DefHead: "(def Indentation Identifier ArgumentList colon)" {
+
+}
+
+ClassHead: "(class Indentation Identifier (lparen IdentifierList rparen)? colon)" {
+
+}
+
+IfHead: "(if Indentation Expr colon)" {
+
+}
+ElifHead: "(elif Indentation Expr colon)" {
+
+}
+ElseHead: "(else colon)" {
+
+}
+WhileHead: "(while Indentation Expr colon)" {
+
+}
+ForHead: "(for Indentation Identifier Indentation in Indentation Variable colon)" {
+
+}
+TryHead: "(try colon)" {
+
+}
+ExceptHead: "(except (Indentation Identifier)? colon)" {
+
+}
+FinallyHead: "(finally colon)" {
+
+}
+
+PrimDataType: "(str | int | float | complex | list | tuple | range | dict | set | frozenset | bool | bytes | bytearray | memoryview)" {
+
+}
+
+DataType: "(PrimDataType)" {
+
+}
 
 // grammar end
