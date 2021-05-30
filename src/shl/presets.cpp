@@ -320,3 +320,10 @@ std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
     }
   }
 }
+
+std::pair<long, long> getLineNumber(std::string_view input, std::pair<int, int> blockRecord) {
+  return std::make_pair(
+      std::count(input.begin(), input.begin() + blockRecord.first, '\n') + 1,
+      std::count(input.begin(), input.begin() + blockRecord.first + blockRecord.second, '\n') + 1
+  );
+}
