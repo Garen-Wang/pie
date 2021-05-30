@@ -1,45 +1,78 @@
-#include <iostream>
-#include <string>
 #include <peg_parser/generator.h>
-
-typedef peg_parser::ParserGenerator<std::string> Parser;
+#include <iostream>
+#include <vector>
 
 int main() {
-  Parser blockParser;
+  struct Block {
+    std::size_t begin, length;
+  };
+
+  using Blocks = std::vector<Block>;
+  peg_parser::ParserGenerator<void, Blocks&> blockParser;
+  blockParser["Indentation"] << "' '*";
   std::vector<int> indentDepth;
-  blockParser["Indent"] << "(' '*)";
-  blockParser["InitBlocks"] << "''" << [&](auto) -> bool {
-    indentDepth.clear();
+  blockParser["InitBlocks"] << "''" << [&](auto&) -> bool {
+    indentDepth.resize(0);
     return true;
   };
-
-  blockParser["SameIndent"] << "Indent" << [&](auto s) -> bool {
+  blockParser["SameIndentation"] << "Indentation" << [&](auto &s) -> bool {
     return s->length() == indentDepth.back();
   };
-  blockParser["SameIndent"]->cacheable = false;
+  blockParser["SameIndentation"]->cacheable = false;
 
-  blockParser["DeeperIndent"] << "Indent" << [&](auto s) -> bool {
-    return s->length() == indentDepth.back() + indentDepth.front();
+  blockParser["DeepIndentation"] << "Indentation" << [&](auto &s) -> bool {
+    return s->length() > indentDepth.back();
   };
-  blockParser["DeeperIndent"]->cacheable = false;
+  blockParser["DeepIndentation"]->cacheable = false;
 
-  blockParser["EnterBlock"] << "Indent" << [&](auto s) -> bool {
-    if (indentDepth.empty() || s->length() == indentDepth.back() + indentDepth.front()) {
+  blockParser["EnterBlock"] << "Indentation" << [&](auto &s) -> bool {
+    if (indentDepth.size() == 0 || s->length() > indentDepth.back()) {
       indentDepth.push_back(s->length());
       return true;
     } else return false;
   };
   blockParser["EnterBlock"]->cacheable = false;
 
-  blockParser["ExitBlock"] << "''" << [&](auto s) -> bool {
+  blockParser["Line"] << "SameIndentation (!'\n' .)+ '\n'";
+  blockParser.getRule("Line")->cacheable = false;
+
+  blockParser["EmptyLine"] << "Indentation '\n'";
+
+  blockParser["ExitBlock"] << "''" << [&](auto&) -> bool {
     indentDepth.pop_back();
     return true;
   };
-  blockParser["ExitBlock"]->cacheable = false;
+  blockParser.getRule("ExitBlock")->cacheable = false;
 
-  blockParser["Line"] << "SameIndent (!'\n' .)* '\n'";
-  blockParser["EmptyLine"] << "SameIndent '\n'";
-  blockParser["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >> [](auto s) {
-
+  blockParser["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >> [](auto e, Blocks &blocks) {
+    for (auto x : e) x.evaluate(blocks);
+    blocks.push_back(Block{e.position(), e.length()});
   };
+
+  blockParser["Start"] << "InitBlocks Block";
+  blockParser.setStart(blockParser["Start"]);
+
+
+  std::string str, input;
+  std::cout << "> ";
+  std::getline(std::cin, str);
+  do {
+    input += str + '\n';
+    std::cout << "- ";
+    std::getline(std::cin, str);
+  } while (str != "");
+
+  try {
+    Blocks blocks;
+    blockParser.run(input, blocks);
+    std::cout << "matched " << blocks.size() << "blocks." << std::endl;
+    for (auto b : blocks) {
+      std::cout << "- from line " << std::count(input.begin(), input.begin() + b.begin, '\n') + 1;
+      std::cout << " to " << std::count(input.begin(), input.begin() + b.begin + b.length, '\n') << std::endl;
+    }
+  } catch (peg_parser::SyntaxError &error) {
+    auto syntax = error.syntax;
+    std::cout << "Syntax error at character " << syntax->end << " while parsing " << syntax->rule->name << std::endl;
+  }
+  return 0;
 }
