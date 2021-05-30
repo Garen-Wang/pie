@@ -265,7 +265,8 @@ Statement: "(DeclarationStatement | ExprStatement | ReturnStatement | IfStatemen
 Block: "(lbrace Indent ((Method | Statement) Indent)* rbrace)" {
 
 }
-Class: "(Visibility Indent class Indent Identifier (Indent extends Indent Identifier)? (Indent implements Indent Identifier (comma Indent Identifier)*)? Indent Block)" {
+// slightly revised here, but no test
+Class: "(Visibility Indent class Indent Identifier (Indent extends Indent Identifier)? (Indent implements Indent Identifier (comma Indent Identifier)*)? (Indent throws Indent Identifier (comma Indent Identifier)*)? Indent Block)" {
 
 }
 Branch: "(semicolon | Statement | Block)" {
