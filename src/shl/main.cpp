@@ -89,7 +89,8 @@ int main(int argc, char **argv) {
 
   auto result = generateParserFromSHL("../src/cpp/cpp_test.shl");
   auto gen = result.second;
-  gen["Program"] << "Expr";
+//  gen["Program"] << "(Preprocessing* Grammar*)";
+  gen["Program"] << "(Grammar*)";
   gen.setStart(gen["Program"]);
 
   try {
