@@ -291,7 +291,13 @@ void initParserBuilder(ParserBuilder& g, Colors& colors) {
 std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
   switch (languageType) {
     case LanguageType::CPP: {
-      return generateParserFromSHL("../src/cpp/cpp.shl");
+      auto temp = generateParserFromSHL("../src/cpp/cpp.shl");
+      if (temp.first) {
+        auto gen = temp.second;
+        gen["Program"] << "Grammar*";
+        gen.setStart(gen["Program"]);
+        return std::make_pair(true, gen);
+      } else return temp;
     }
     case LanguageType::JAVA: {
       auto temp = generateParserFromSHL("../src/java/java.shl");

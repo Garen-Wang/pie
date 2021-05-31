@@ -83,15 +83,14 @@ int main(int argc, char **argv) {
 //  gen["Program"] << "DefHead";
 //  gen.setStart(gen["Program"]);
 
-//  auto temp = generateLanguageParser(LanguageType::PYTHON);
-//  assert(temp.first);
-//  auto gen = temp.second;
+  auto temp = generateLanguageParser(LanguageType::CPP);
+  assert(temp.first);
+  auto gen = temp.second;
 
-  auto result = generateParserFromSHL("../src/cpp/cpp_test.shl");
-  auto gen = result.second;
-//  gen["Program"] << "(Preprocessing* Grammar*)";
-  gen["Program"] << "(Grammar*)";
-  gen.setStart(gen["Program"]);
+//  auto result = generateParserFromSHL("../src/cpp/cpp.shl");
+//  auto gen = result.second;
+//  gen["Program"] << "(Grammar*)";
+//  gen.setStart(gen["Program"]);
 
   try {
     auto testOutput = gen.run(testInput);
