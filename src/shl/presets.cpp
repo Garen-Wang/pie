@@ -76,8 +76,8 @@ void initSHLGrammar(ParserBuilder& g) {
     gen["rbracket"] << "(']')" >> [](auto) {
       return "rbracket";
     };
-    gen["question"] << "('?')" >> [](auto) {
-      return "question";
+    gen["question_mark"] << "('?')" >> [](auto) {
+      return "question_mark";
     };
     gen["bell"] << "('\a')" >> [](auto) {
       return "bell";
@@ -144,7 +144,7 @@ void initSHLGrammar(ParserBuilder& g) {
     // CharAtomic is provided here
     // sorry, '\0' cannot be expressed in preset grammar
     // not contain single_quote and double_quote
-    gen["CharAtomic"] << "(backslash? ([a-zA-Z0-9] | space | excl | hash | dollar | percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | slash | lbracket | backslash | rbracket | caret | underscore | back_quote | lbrace | vertical_bar | rbrace | tilda))";
+    gen["CharAtomic"] << "(backslash? ([a-zA-Z0-9] | space | excl | question_mark | hash | dollar | percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | slash | lbracket | backslash | rbracket | caret | underscore | back_quote | lbrace | vertical_bar | rbrace | tilda | colon | semicolon))";
 
 
     return nullptr;
