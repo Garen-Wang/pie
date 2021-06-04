@@ -102,6 +102,9 @@ try: "('try')" {
 catch: "('catch')" {
   pink
 }
+throw: "('throw')" {
+  pink
+}
 // keywords end
 
 // grammars begin
@@ -177,7 +180,7 @@ ArgumentDataType: "(DataType | auto)" {
 
 }
 
-Argument: "(ArgumentDataType Indentation Identifier (single_equal Expr)?)" {
+Argument: "(ArgumentDataType Indentation (Identifier (single_equal Expr)?)?)" {
 
 }
 ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
@@ -187,7 +190,7 @@ ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
 Parameter: "(Expr)" {
 
 }
-ParameterList: "(lparen (Parameter (comma Indentation Parameter)*)? rparen)" {
+ParameterList: "(lparen Indent (Parameter (comma Indent Parameter)*)? rparen)" {
 
 }
 
@@ -256,15 +259,16 @@ set: "('set')" { }
 size_type: "('size_type')" { }
 size_t: "('size_t')" { }
 iterator: "('iterator')" { }
+const_iterator: "('const_iterator')" { }
 
 PrimDataType: "(signed_long_long | signed_long | signed_int | signed_short | signed_char | signed | unsigned_long_long | unsigned_long | unsigned_int | unsigned_short | unsigned_char | unsigned | long_long | long_double | long | int | short | char | float | double)" {
 
 }
-STLDataType: "((std '::')? (string | vector | map | set | size_t) (TemplateList)? ('::' (iterator | size_type))?)" {
+STLDataType: "((std '::')? (string | vector | map | set | size_t) (TemplateList)? ('::' (iterator | size_type | const_iterator))?)" {
 
 }
 
-DataType: "((const Indentation)? (static Indentation)? (PrimDataType | STLDataType) (Indentation (asterisk | ampersand))?)" {
+DataType: "((const Indentation)? (static Indentation)? (PrimDataType | STLDataType | QualifiedConstant) (Indentation (asterisk | ampersand))?)" {
 
 }
 
@@ -280,6 +284,7 @@ OctLiteral: "('-'? '0' [0-7]+)" {
 BoolLiteral: "(true | false)" {
   pink
 }
+// TODO: bug here, cannot used in nested matches
 CharLiteral: "(single_quote CharAtomic single_quote)" {
   orange
 }
@@ -297,7 +302,11 @@ ReturnDataType: "(DataType | void)" {
 
 }
 
-Function: "((inline Indentation)? ReturnDataType Indentation Identifier ArgumentList Indent Block)" {
+Function: "((inline Indent)? ReturnDataType Indent Identifier ArgumentList Indent Block)" {
+
+}
+
+FunctionDefinition: "((inline Indent)? ReturnDataType Indent Identifier ArgumentList semicolon)" {
 
 }
 
@@ -322,7 +331,7 @@ Struct: "(struct Indentation Identifier Indent Block semicolon)" {
 }
 
 // not totally right here
-ThrowStatement: "(throw QualifiedConstant semicolon)" {
+ThrowStatement: "(throw Indentation QualifiedConstant ParameterList semicolon)" {
 
 }
 
@@ -338,11 +347,11 @@ TryStatement: "(try Indent Block Indent catch Indentation lparen Argument rparen
 
 }
 // has the same property as a statement (but actually is a block)
-OtherStatement: "(ForLoop | WhileLoop | DoWhileLoop | IfStatement | TryStatement | Function | Block)" {
+OtherStatement: "(ForLoop | WhileLoop | DoWhileLoop | IfStatement | TryStatement | FunctionDefinition | Function | Block)" {
 
 }
 
-IDX: "(QualifiedConstant (lbracket Expr rbracket)+)" {
+IDX: "(Expr (lbracket Expr rbracket)+)" {
 
 }
 
@@ -459,7 +468,7 @@ PAREN: "(lparen Expr rparen)" {
 }
 
 // test here
-VAR: "((Identifier ParameterList? ('.' | '->' | '::'))* Identifier ParameterList?)" {
+VAR: "((Expr ('.' | '->' | '::'))* Identifier ParameterList?)" {
 
 }
 PureAssignment: "(Expr equals Expr)" {
