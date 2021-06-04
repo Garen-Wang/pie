@@ -29,29 +29,15 @@ namespace shl {
         return "lbrace";
       };
       gen["rbrace"] << "('}')" >> [](auto) {
-        return "rbrace";
-      };
-      gen["comma"] << "(',')" >> [](auto) {
-        return "comma";
-      };
-      gen["colon"] << "(':')" >> [](auto) {
-        return "colon";
-      };
-      gen["semicolon"] << "(';')" >> [](auto) {
-        return "semicolon";
-      };
-      gen["single_quote"] << "([\'])" >> [](auto) {
-        return "single_quote";
-      };
-      gen["double_quote"] << "('\"')" >> [](auto) {
-        return "double_quote";
-      };
-      gen["single_equal"] << "('=')" >> [](auto) {
-        return "single_equal";
-      };
-      gen["equals"] << "Indent single_equal Indent" >> [](auto) {
-        return "equals";
-      };
+        return "rbrace"; };
+      gen["comma"] << "(',')" >> [](auto) { return "comma"; };
+      gen["colon"] << "(':')" >> [](auto) { return "colon"; };
+      gen["semicolon"] << "(';')" >> [](auto) { return "semicolon"; };
+      // TODO: bug here, but have no idea to fix
+      gen["single_quote"] << "[']" >> [](auto) { return "single_quote"; };
+      gen["double_quote"] << "('\"')" >> [](auto) { return "double_quote"; };
+      gen["single_equal"] << "('=')" >> [](auto) { return "single_equal"; };
+      gen["equals"] << "Indent single_equal Indent" >> [](auto) { return "equals"; };
       gen["double_equal"] << "('==')" >> [](auto) {
         return "double_equal";
       };
@@ -147,8 +133,12 @@ namespace shl {
       // CharAtomic is provided here
       // sorry, '\0' cannot be expressed in preset grammar
       // not contain single_quote and double_quote
-      gen["CharAtomic"] << "(backslash? ([a-zA-Z0-9] | space | excl | question_mark | hash | dollar | percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | slash | lbracket | backslash | rbracket | caret | underscore | back_quote | lbrace | vertical_bar | rbrace | tilda | colon | semicolon))" >> [](auto) { return "CharAtomic"; };
-
+      gen["CharAtomic"]
+              << "(backslash? ([a-zA-Z0-9] | space | excl | question_mark | hash | dollar | "
+                 "percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | "
+                 "slash | lbracket | backslash | rbracket | caret | underscore | back_quote | "
+                 "lbrace | vertical_bar | rbrace | tilda | colon | semicolon | langle | rangle))"
+          >> [](auto) { return "CharAtomic"; };
 
       return nullptr;
     };

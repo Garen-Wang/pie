@@ -1,66 +1,111 @@
+#include <time.h>
+
 #include <algorithm>
-#include <iomanip>
-#ifndef __GNUC__
-#include <ios>
-#endif
+#include <cstdlib>
 #include <iostream>
+#include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-using std::cin;             using std::sort;
-using std::cout;            using std::streamsize;
-using std::endl;            using std::string;
-using std::setprecision;    using std::vector;
+#include "split.h"
+
+using std::cin;
+using std::copy;
+using std::cout;
+using std::domain_error;
+using std::endl;
+using std::find;
+using std::getline;
+using std::istream;
+using std::logic_error;
+using std::map;
+using std::rand;
+using std::string;
+using std::vector;
+
+typedef vector<string> Rule;
+typedef vector<Rule> Rule_collection;
+typedef map<string, Rule_collection> Grammar;
+
+// read a grammar from a given input stream
+Grammar read_grammar(istream& in) {
+  Grammar ret;
+  string line;
+
+  // read the input
+  while (getline(in, line)) {
+    // `split' the input into words
+    vector<string> entry = split(line);
+
+    if (!entry.empty()) ret[entry[0]].push_back(Rule(entry.begin() + 1, entry.end()));
+  }
+  return ret;
+}
+
+void gen_aux(const Grammar&, const string&, vector<string>&);
+
+int nrand(int);
+
+vector<string> gen_sentence(const Grammar& g) {
+  vector<string> ret;
+  gen_aux(g, "<sentence>", ret);
+  return ret;
+}
+
+void gen_aux(const Grammar& g, const string& word, vector<string>& ret) {
+  if (!bracketed(word)) {
+    ret.push_back(word);
+  } else {
+    // locate the rule that corresponds to `word'
+    Grammar::const_iterator it = g.find(word);
+    if (it == g.end()) throw logic_error("empty rule");
+
+    // fetch the set of possible rules
+    const Rule_collection& c = it->second;
+
+    // from which we select one at random
+    const Rule& r = c[nrand(c.size())];
+
+    // recursively expand the selected rule
+    for (Rule::const_iterator i = r.begin(); i != r.end(); ++i) gen_aux(g, *i, ret);
+  }
+}
 
 int main() {
-  // ask for and read the student's name
-  cout << "Please enter your first name: ";
-  string name;
-  cin >> name;
-  cout << "Hello, " << name << "!" << endl;
+  // generate the sentence
+  vector<string> sentence = gen_sentence(read_grammar(cin));
 
-  // ask for and read the midterm and final grades
-  cout << "Please enter your midterm and final exam grades: ";
-  double midterm, final;
-  cin >> midterm >> final;
-
-  // ask for and read the homework grades
-  cout << "Enter all your homework grades, "
-          "followed by end-of-file: ";
-
-  vector<double> homework;
-  double x;
-  // invariant: `homework' contains all the homework grades read so far
-  while (cin >> x)
-    homework.push_back(x);
-
-  // check that the student entered some homework grades
+  // write the first word, if any
 #ifdef _MSC_VER
-  typedef std::vector<double>::size_type vec_sz;
+  std::vector<string>::const_iterator it = sentence.begin();
 #else
-  typedef vector<double>::size_type vec_sz;
+  vector<string>::const_iterator it = sentence.begin();
 #endif
-  int size = homework.size();
-  if (size == 0) {
-    cout << endl << "You must enter your grades.  "
-                    "Please try again." << endl;
-    return 1;
+  if (!sentence.empty()) {
+    cout << *it;
+    ++it;
   }
 
-  // sort the grades
-  sort(homework.begin(), homework.end());
+  // write the rest of the words, each preceded by a space
+  while (it != sentence.end()) {
+    cout << " " << *it;
+    ++it;
+  }
 
-  // compute the median homework grade
-  int mid = size/2;
-  double median;
-  median = size % 2 == 0 ? (homework[mid] + homework[mid-1]) / 2
-                         : homework[mid];
-
-  // compute and write the final grade
-  int prec = cout.precision();
-  cout << "Your final grade is " << setprecision(3)
-       << 0.2 * midterm + 0.4 * final + 0.4 * median
-       << setprecision(prec) << endl;
-
+  cout << endl;
   return 0;
+}
+
+// return a random integer in the range `[0,' `n)'
+int nrand(int n) {
+  if (n <= 0 || n > RAND_MAX) throw domain_error("Argument to nrand is out of range");
+
+  const int bucket_size = RAND_MAX / n;
+  int r;
+
+  do r = rand() / bucket_size;
+  while (r >= n);
+
+  return r;
 }
