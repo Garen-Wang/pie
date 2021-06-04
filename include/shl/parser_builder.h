@@ -14,43 +14,47 @@
 #include <string_view>
 #include <unordered_set>
 #include <utility>
+#include <set>
 
 // will be modified later
 using Attr = std::string;
 
-class SyntaxHighlightInfo {
-public:
-  int idx = 0;
-  Attr attr;
-  explicit SyntaxHighlightInfo(Attr attr);
-  explicit SyntaxHighlightInfo(int idx, Attr attr);
-};
+namespace shl {
+  extern std::set<std::string> identifiers;
 
-typedef std::vector<SyntaxHighlightInfo> SyntaxHighlightInfos;
-typedef peg_parser::ParserGenerator<std::string> Parser;
-typedef peg_parser::ParserGenerator<std::shared_ptr<SyntaxHighlightInfos>, Parser&> ParserBuilder;
+  class SyntaxHighlightInfo {
+  public:
+    int idx = 0;
+    Attr attr;
+    explicit SyntaxHighlightInfo(Attr attr);
+    explicit SyntaxHighlightInfo(int idx, Attr attr);
+  };
 
-class Colors {
-private:
-  // not wise to use *unordered_set* here, try *unordered_map*
-  std::unordered_set<std::string> colors;
-public:
-  // get expression for PEG parser grammar
-  std::string getExpr();
-  // hope all string in `colors` are lowercase
-  void append(const std::string& color);
-};
+  typedef std::vector<SyntaxHighlightInfo> SyntaxHighlightInfos;
+  typedef peg_parser::ParserGenerator<std::string> Parser;
+  typedef peg_parser::ParserGenerator<std::shared_ptr<SyntaxHighlightInfos>, Parser&> ParserBuilder;
 
-void changeAttr(Attr attr, int begin, int end);
+  class Colors {
+  private:
+    // not wise to use *unordered_set* here, try *unordered_map*
+    std::unordered_set<std::string> colors;
+  public:
+    // get expression for PEG parser grammar
+    std::string getExpr();
+    // hope all string in `colors` are lowercase
+    void append(const std::string& color);
+  };
 
-ParserBuilder generateParserBuilder(Colors& colors);
+  void changeAttr(Attr attr, int begin, int end);
 
-Colors getPredefinedColors();
+  ParserBuilder generateParserBuilder(Colors& colors);
 
-std::pair<bool, Parser> generateParserFromSHL(const std::string& filename);
+  Colors getPredefinedColors();
 
-void initParserBuilder(ParserBuilder& g, Colors& colors);
+  std::pair<bool, Parser> generateParserFromSHL(const std::string& filename);
 
-int main(int argc, char** argv);
+  void initParserBuilder(ParserBuilder& g, Colors& colors);
+}
+
 
 #endif //PYTHON_PARSER_PARSER_BUILDER_H
