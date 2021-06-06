@@ -8,28 +8,27 @@ namespace shl {
   std::set<std::string> identifiers;
   SyntaxHighlightInfo::SyntaxHighlightInfo(Attr attr) {
     this->idx = -1;
-    this->attr = std::move(attr);
+    this->attr = attr;
   }
 
   SyntaxHighlightInfo::SyntaxHighlightInfo(int idx, Attr attr) {
     this->idx = idx;
-    this->attr = std::move(attr);
+    this->attr = attr;
   }
-
 
   std::string Colors::getExpr() {
     std::string expr = "(";
-    for (const std::string& color : colors) {
-      expr += "'" + color + "'|";
+    for (const auto& it : colors) {
+      expr += "'" + it.first + "'|";
     }
     expr.pop_back();
     expr += ")";
     return expr;
   }
 
-  void Colors::append(const std::string &color) {
-    colors.insert(color);
-  }
+  void Colors::append(const std::string& color, const _Color& _color) { colors[color] = _color; }
+  bool Colors::exist(const std::string& str) { return colors.count(str) != 0; }
+  _Color Colors::get(const std::string& str) { return colors[str]; }
 
   void changeAttr(Attr attr, int begin, int end) {
     std::cout << "from " << begin << " to " << end << ", set" << attr << std::endl;
@@ -43,18 +42,18 @@ namespace shl {
 
   Colors getPredefinedColors() {
     Colors colors;
-    colors.append("black");
-    colors.append("gray");
-    colors.append("shallow_yellow");
-    colors.append("blue");
-    colors.append("cyan");
-    colors.append("purple");
-    colors.append("green");
-    colors.append("dark_purple");
-    colors.append("orange");
-    colors.append("white");
-    colors.append("yellow");
-    colors.append("pink");
+    colors.append("black", _Color(0, 0, 0));
+    colors.append("gray", _Color(220, 220, 220));
+    colors.append("shallow_yellow", _Color(204, 255, 0));
+    colors.append("blue", _Color(0, 0, 255));
+    colors.append("cyan", _Color(0, 255, 255));
+    colors.append("purple", _Color(127, 0, 255));
+    colors.append("green", _Color(0, 128, 0));
+    colors.append("dark_purple", _Color(230, 230, 250));
+    colors.append("orange", _Color(255, 165, 0));
+    colors.append("white", _Color(255, 255, 255));
+    colors.append("yellow", _Color(255, 255, 0));
+    colors.append("pink", _Color(255, 182, 193));
     return colors;
   }
 
