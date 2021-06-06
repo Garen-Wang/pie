@@ -35,7 +35,13 @@ struct Style {
   bool bold, italic;
   bool underlined, strikethrough;
 
-  explicit Style() : bold(false), italic(false), underlined(false), strikethrough(false) {}
+  explicit Style()
+      : fg(255, 255, 255),
+        bg(255, 255, 255),
+        bold(false),
+        italic(false),
+        underlined(false),
+        strikethrough(false) {}
 
   friend std::ostream& operator<<(std::ostream& out, const Style& style) { return out << style.fg; }
 };
@@ -47,7 +53,7 @@ namespace shl {
 
   class SyntaxHighlightInfo {
   public:
-    int idx = 0;
+    mutable int idx = 0;
     Attr attr;
     explicit SyntaxHighlightInfo(Attr attr);
     explicit SyntaxHighlightInfo(int idx, Attr attr);
@@ -81,6 +87,5 @@ namespace shl {
 
   void initParserBuilder(ParserBuilder& g, Colors& colors);
 }
-
 
 #endif //PYTHON_PARSER_PARSER_BUILDER_H
