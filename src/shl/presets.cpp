@@ -199,33 +199,51 @@ namespace shl {
     g["GrammarExpr"] << R"(('"' (!'"' .)* '"'))" >> [](auto, Parser&) {
       return nullptr;
     };
-    g["Indent"] << "(['\t''\n' ]*)" >> [](auto, Parser&) {
-      return nullptr;
+    g["Indent"] << "(['\t''\n' ]*)" >> [](auto, Parser&) { return nullptr; };
+    g["EmptyBlock"] << "('{' Indent '}')" >> [](auto, Parser&) { return nullptr; };
+    g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >>
+        [](auto s, Parser& gen) { return s[1].evaluate(gen); };
+    g["equals"] << "(Indent '=' Indent)" >> [](auto, Parser&) { return nullptr; };
+    g["size"] << "('size')" >> [](auto, Parser&) { return nullptr; };
+    g["ForStmt"] << "('for' ['\t' ]* '(' Identifier equals Index ';' ['\t' ]* Index ';' ['\t' ]* "
+                    "Index ')' ['\t''\n' ]* '$' Identifier equals Attr)"
+        >> [](auto s, Parser& gen) {
+            assert(s[0].string() == s[5].string());
+            int size = s.size();
+            int left = getIdx(s[2].string(), size);
+            int right = getIdx(s[3].string(), size);
+            int inc = getIdx(s[4].string(), size);
+            auto ret = new SyntaxHighlightInfos;
+            std::shared_ptr<SyntaxHighlightInfos> x = s[7].evaluate(gen);
+            for (int i = left; i < right; i += inc) {
+              ret->emplace_back(i, x->begin()->attr);
+            }
+            return std::shared_ptr<SyntaxHighlightInfos>(ret);
+          };
+    // for loop
+    g["SingleIndexStmt"] << "('$' Index equals Attr)" >> [](auto s, Parser& gen) {
+      auto x = s[2].evaluate(gen);
+      x->begin()->idx = std::stoi(s[0].string());
+      return x;
     };
-    g["EmptyBlock"] << "('{' Indent '}')" >> [](auto, Parser&) {
-      return nullptr;
-    };
-    g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >> [](auto s, Parser& gen) { return s[1].evaluate(gen); };
-    g["equals"] << "(Indent '=' Indent)" >> [](auto, Parser&) {
-      return nullptr;
-    };
-    g["MultiBlock"] << "('{' ['\t''\n' ]* ('$' (Index equals Attr ['\t''\n' ]*))* '}')" >> [](auto s, Parser& gen) {
+    g["MultiBlock"] << "('{' ['\t''\n' ]* ((ForStmt | SingleIndexStmt) ['\t''\n' ]*)* '}')" >>
+        [](auto s, Parser& gen) {
           auto ret = new SyntaxHighlightInfos;
-          for (int i = 0; i < s.size(); i += 3) {
-            int idx = std::stoi(s[i].string());
-            Attr attr = s[i + 2].evaluate(gen)->begin()->attr;
+          for (int i = 0; i < s.size(); i++) {
+            // int idx = std::stoi(s[i].string());
+            // Attr attr = s[i + 2].evaluate(gen)->begin()->attr;
             // DEBUG
             // std::cout << "$" << idx << " = " << s[i + 2].string() << std::endl; // since it
             // contains newline
 
-            ret->push_back(SyntaxHighlightInfo(idx, attr));
+            std::shared_ptr<SyntaxHighlightInfos> x = s[i].evaluate(gen);
+            ret->insert(ret->end(), x->begin(), x->end());
           }
           std::cout << ret << std::endl;
           return std::shared_ptr<SyntaxHighlightInfos>(ret);
         };
     g["Block"] << "(EmptyBlock | OnlyBlock | MultiBlock)";
-    g["Index"] << "(('0') | ([1-9][0-9]*))" >> [](auto s, Parser&) {
-      return nullptr; };
+    g["Index"] << "(('+' | '-')? ('0' | ([1-9][0-9]*)))" >> [](auto s, Parser&) { return nullptr; };
     g["underlined"] << "'underlined'" >> [](auto, Parser&) { return nullptr; };
     g["bold"] << "'bold'" >> [](auto, Parser&) { return nullptr; };
     g["italic"] << "'italic'" >> [](auto, Parser&) { return nullptr; };
@@ -263,22 +281,25 @@ namespace shl {
 
     initSHLGrammar(g);
     g["Grammar"] << "(Identifier ':' GrammarExpr Block)" >> [&](auto s, Parser& gen) {
-      auto identifier = s[0].string();
+      std::string identifier = s[0].string();
       auto grammarExpr = s[1].string().substr(1, s[1].string().length() - 2);
       auto syntaxHighlightInfos = s[2].evaluate(gen);
       if (syntaxHighlightInfos != nullptr) {
         std::cout << "---" << syntaxHighlightInfos << std::endl;
         gen[identifier] << grammarExpr >> [=](auto ss) {
-          // std::cout << identifier << std::endl;
+          if (identifier == "Identifier" || isLowercase(identifier)) {
+            identifiers.insert(ss.string());
+          }
           for (auto s : ss) s.evaluate();
-          //          std::cout << "---" << syntaxHighlightInfos->size() << std::endl;
+          // std::cout << "---" << syntaxHighlightInfos->size() << std::endl;
           if (syntaxHighlightInfos->begin()->idx == -1) {
-            //            std::cout << "dss" << std::endl;
+            // std::cout << "dss" << std::endl;
             changeAttr(syntaxHighlightInfos->begin()->attr, ss.position(),
                        ss.position() + ss.length());
           } else {
             SyntaxHighlightInfos& infos = *syntaxHighlightInfos;
             for (auto info : infos) {
+              if (info.idx >= ss.size()) continue;
               changeAttr(info.attr, ss[info.idx].position(),
                          ss[info.idx].position() + ss[info.idx].length());
             }
@@ -286,9 +307,13 @@ namespace shl {
           return "test";
         };
       } else {
-        gen[identifier] << grammarExpr >> [](auto ss) {
+        gen[identifier] << grammarExpr >> [=](auto ss) {
           // std::cout << identifier << std::endl;
+          if (identifier == "Identifier") {
+            identifiers.insert(ss.string());
+          }
           for (auto s : ss) s.evaluate();
+
           return "test";
         };
       }
@@ -302,14 +327,24 @@ namespace shl {
     g.setStart(g["Program"]);
   }
 
-
   std::pair<long, long> getLineNumber(std::string_view input, std::pair<int, int> blockRecord) {
     return std::make_pair(
         std::count(input.begin(), input.begin() + blockRecord.first, '\n') + 1,
-        std::count(input.begin(), input.begin() + blockRecord.first + blockRecord.second, '\n') + 1
-    );
+        std::count(input.begin(), input.begin() + blockRecord.first + blockRecord.second, '\n')
+            + 1);
   }
-}
+  int getIdx(const std::string& str, int size) {
+    if (str[0] == '-')
+      return size - std::stoi(str.substr(1));
+    else if (str[0] == '+')
+      return std::stoi(str.substr(1));
+    else
+      return std::stoi(str);
+  }
+  bool isLowercase(const std::string& str) {
+    return std::all_of(str.begin(), str.end(), [](char x) { return islower(x); });
+  }
+}  // namespace shl
 
 std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
   switch (languageType) {
