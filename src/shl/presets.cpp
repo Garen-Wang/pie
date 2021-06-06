@@ -4,6 +4,8 @@
 
 #include "shl/presets.h"
 
+#include <memory>
+
 using namespace shl;
 
 namespace shl {
@@ -203,54 +205,58 @@ namespace shl {
     g["EmptyBlock"] << "('{' Indent '}')" >> [](auto, Parser&) {
       return nullptr;
     };
-    g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >> [](auto s, Parser& gen) {
-      auto ret = std::make_shared<SyntaxHighlightInfos>();
-      Attr attr = s[1].evaluate(gen)->begin()->attr;
-      ret->push_back(SyntaxHighlightInfo(-1, attr));
-      return ret;
-    };
+    g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >> [](auto s, Parser& gen) { return s[1].evaluate(gen); };
     g["equals"] << "(Indent '=' Indent)" >> [](auto, Parser&) {
       return nullptr;
     };
     g["MultiBlock"] << "('{' ['\t''\n' ]* ('$' (Index equals Attr ['\t''\n' ]*))* '}')" >> [](auto s, Parser& gen) {
-      auto ret = std::make_shared<SyntaxHighlightInfos>();
-      for (int i = 0; i < s.size(); i += 3) {
-        int idx = std::stoi(s[i].string());
-        Attr attr = s[i + 2].evaluate(gen)->begin()->attr;
-        // DEBUG
-        // std::cout << "$" << idx << " = " << s[i + 2].string() << std::endl; // since it contains newline
+          auto ret = new SyntaxHighlightInfos;
+          for (int i = 0; i < s.size(); i += 3) {
+            int idx = std::stoi(s[i].string());
+            Attr attr = s[i + 2].evaluate(gen)->begin()->attr;
+            // DEBUG
+            // std::cout << "$" << idx << " = " << s[i + 2].string() << std::endl; // since it
+            // contains newline
 
-        ret->push_back(SyntaxHighlightInfo(idx, attr));
-      }
-      return ret;
-    };
+            ret->push_back(SyntaxHighlightInfo(idx, attr));
+          }
+          std::cout << ret << std::endl;
+          return std::shared_ptr<SyntaxHighlightInfos>(ret);
+        };
     g["Block"] << "(EmptyBlock | OnlyBlock | MultiBlock)";
     g["Index"] << "(('0') | ([1-9][0-9]*))" >> [](auto s, Parser&) {
-      return nullptr;
-    };
-    g["underlined"] << "'underlined'" >> [](auto, Parser&) {
-      return nullptr;
-    };
-    g["bold"] << "'bold'" >> [](auto, Parser&) {
-      return nullptr;
-    };
-    g["italic"] << "'italic'" >> [](auto, Parser&) {
-      return nullptr;
-    };
-    g["Color"] << colors.getExpr() >> [](auto s, Parser&) {
-      return nullptr;
-    };
-    g["Attr"] << "(((underlined | bold | italic) Indent)* Color)" >> [](auto s, Parser&) {
-      Attr attr;
-      auto ret = std::make_shared<SyntaxHighlightInfos>();
+      return nullptr; };
+    g["underlined"] << "'underlined'" >> [](auto, Parser&) { return nullptr; };
+    g["bold"] << "'bold'" >> [](auto, Parser&) { return nullptr; };
+    g["italic"] << "'italic'" >> [](auto, Parser&) { return nullptr; };
+    g["strikethrough"] << "'strikethrough'" >> [](auto, Parser&) { return nullptr; };
+    g["Color"] << colors.getExpr() >> [](auto s, Parser&) { return nullptr; };
+    g["Attr"] << "(((bold | italic | underlined | strikethrough | Color) Indent)* )" >>
+        [&](auto s, Parser&) {
+          Attr attr;
+          auto ret = new SyntaxHighlightInfos;
 
-      for (int i = 0; i < s.size(); i += 2) {
-        //      std::cout << s[i].evaluate() << " ";
-        attr += s[i].string() + " ";
-      }
-      ret->push_back(SyntaxHighlightInfo(attr));
-      return ret;
-    };
+          for (int i = 0; i < s.size(); i += 2) {
+            auto str = s[i].string();
+            if (str == "bold") {
+              attr.bold = true;
+            } else if (str == "italic") {
+              attr.italic = true;
+            } else if (str == "underlined") {
+              attr.underlined = true;
+            } else if (str == "strikethrough") {
+              attr.strikethrough = true;
+            } else if (colors.exist(str)) {
+              attr.fg = colors.get(str);
+              std::cout << "color: " << str << std::endl;
+            } else {
+              std::cout << "unknown keyword" << std::endl;
+            }
+          }
+          ret->push_back(SyntaxHighlightInfo(attr));
+          std::cout << ret << std::endl;
+          return std::shared_ptr<SyntaxHighlightInfos>(ret);
+        };
     g["Comment"] << "('//' (!'\n' .)*)" >> [](auto, Parser&) {
       return nullptr;
     };
@@ -260,20 +266,32 @@ namespace shl {
       auto identifier = s[0].string();
       auto grammarExpr = s[1].string().substr(1, s[1].string().length() - 2);
       auto syntaxHighlightInfos = s[2].evaluate(gen);
-      // DEBUG
-      // std::cout << identifier << ": " << grammarExpr << std::endl;
-      // std::cout << identifier << std::endl;
-      gen[identifier] << grammarExpr >> [&](auto ss) {
-        //      std::cout << identifier << std::endl;
-//        for (auto s : ss) std::cout << s.evaluate() << std::endl;
-        return "test";
-      };
-      //    gen[identifier] << grammarExpr >> [&](auto ss) {
-      //      for (auto it = syntaxHighlightInfos->begin(); it != syntaxHighlightInfos->end(); ++it) {
-      //        changeAttr(it->attr, ss[it->idx].position(), ss[it->idx].position() + ss[it->idx].length());
-      //      }
-      //      return identifier;
-      //    };
+      if (syntaxHighlightInfos != nullptr) {
+        std::cout << "---" << syntaxHighlightInfos << std::endl;
+        gen[identifier] << grammarExpr >> [=](auto ss) {
+          // std::cout << identifier << std::endl;
+          for (auto s : ss) s.evaluate();
+          //          std::cout << "---" << syntaxHighlightInfos->size() << std::endl;
+          if (syntaxHighlightInfos->begin()->idx == -1) {
+            //            std::cout << "dss" << std::endl;
+            changeAttr(syntaxHighlightInfos->begin()->attr, ss.position(),
+                       ss.position() + ss.length());
+          } else {
+            SyntaxHighlightInfos& infos = *syntaxHighlightInfos;
+            for (auto info : infos) {
+              changeAttr(info.attr, ss[info.idx].position(),
+                         ss[info.idx].position() + ss[info.idx].length());
+            }
+          }
+          return "test";
+        };
+      } else {
+        gen[identifier] << grammarExpr >> [](auto ss) {
+          // std::cout << identifier << std::endl;
+          for (auto s : ss) s.evaluate();
+          return "test";
+        };
+      }
       return nullptr;
     };
 
