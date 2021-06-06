@@ -141,12 +141,11 @@ Pragma: "(hash pragma Indentation until_newline newline)" {
   $3 = white
 }
 IncludePath: "(([a-zA-Z] | '.' | '/' | '_')+)" {
-
+  orange
 }
 Include: "(hash include Indentation ((double_quote IncludePath double_quote) | (langle IncludePath rangle)) newline)" {
-  $3 = orange
-  $4 = orange
-  $5 = orange
+  $3 = italic orange
+  $5 = italic orange
 }
 // all preprocessings are line feed
 Preprocessing: "(Ifdef | Ifndef | Else | Endif | Define | Pragma | Include)" {
@@ -169,7 +168,8 @@ UsingStatement: "((UsingNamespace | UsingAssignment | UsingQualified) semicolon)
 }
 
 QualifiedConstant: "((Identifier '::')* Identifier)" {
-
+  for (i = 0; -0; 2)
+    $i = purple
 }
 
 TypedefStatement: "(typedef Indentation DataType Indentation Identifier semicolon)" {
@@ -181,7 +181,7 @@ ArgumentDataType: "(DataType | auto)" {
 }
 
 Argument: "(ArgumentDataType Indentation (Identifier (single_equal Expr)?)?)" {
-
+  $2 = white
 }
 ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
 
@@ -227,23 +227,23 @@ ForLoop: "(for Indentation lparen Declaration semicolon Indentation Expr semicol
 
 }
 
-this: "('this')" { }
-bool: "('bool')" { }
-int: "('int')" { }
-char: "('char')" { }
-long: "('long')" { }
-double: "('double')" { }
-float: "('float')" { }
-short: "('short')" { }
+this: "('this')" { pink }
+bool: "('bool')" { pink }
+int: "('int')" { pink }
+char: "('char')" { pink }
+long: "('long')" { pink }
+double: "('double')" { pink }
+float: "('float')" { pink }
+short: "('short')" { pink }
 long_long: "(long Indentation long)" { }
-void: "('void')" { }
-unsigned: "('unsigned')" { }
+void: "('void')" { pink }
+unsigned: "('unsigned')" { pink }
 unsigned_char: "(unsigned Indentation char)" { }
 unsigned_int: "(unsigned Indentation int)" { }
 unsigned_short: "(unsigned Indentation short)" { }
 unsigned_long: "(unsigned Indentation long)" { }
 unsigned_long_long: "(unsigned Indentation long_long)" { }
-signed: "('signed')" { }
+signed: "('signed')" { pink }
 signed_char: "(signed Indentation char)" { }
 signed_int: "(signed Indentation int)" { }
 signed_short: "(signed Indentation short)" { }
@@ -251,15 +251,15 @@ signed_long: "(signed Indentation long)" { }
 signed_long_long: "(signed Indentation long_long)" { }
 long_double: "(long Indentation double)" { }
 
-std: "('std')" { }
-vector: "('vector')" { }
-string: "('string')" { }
-map: "('map')" { }
-set: "('set')" { }
-size_type: "('size_type')" { }
-size_t: "('size_t')" { }
-iterator: "('iterator')" { }
-const_iterator: "('const_iterator')" { }
+std: "('std')" { purple }
+vector: "('vector')" { purple }
+string: "('string')" { purple }
+map: "('map')" { purple }
+set: "('set')" { purple }
+size_type: "('size_type')" { purple }
+size_t: "('size_t')" { purple }
+iterator: "('iterator')" { purple }
+const_iterator: "('const_iterator')" { purple }
 
 PrimDataType: "(signed_long_long | signed_long | signed_int | signed_short | signed_char | signed | unsigned_long_long | unsigned_long | unsigned_int | unsigned_short | unsigned_char | unsigned | long_long | long_double | long | int | short | char | float | double)" {
 
@@ -303,34 +303,29 @@ ReturnDataType: "(DataType | void)" {
 }
 
 Function: "((inline Indent)? ReturnDataType Indent Identifier ArgumentList Indent Block)" {
-
+  $-4 = green
 }
 
 FunctionDefinition: "((inline Indent)? ReturnDataType Indent Identifier ArgumentList semicolon)" {
-
+  $-3 = green
 }
 
 FunctionCall: "((Identifier ParameterList? ('.' | '->' | '::'))* Identifier ParameterList)" {
 
 }
 
-class: "('class')" {
+class: "('class')" { pink }
 
-}
-
-struct: "('struct')" {
-
-}
+struct: "('struct')" { pink }
 
 Class: "(class Indentation Identifier Indent Block semicolon)" {
-
+  $2 = purple
 }
 
 Struct: "(struct Indentation Identifier Indent Block semicolon)" {
-
+  $2 = purple
 }
 
-// not totally right here
 ThrowStatement: "(throw Indentation QualifiedConstant ParameterList semicolon)" {
 
 }
@@ -489,19 +484,13 @@ ExprStatement: "(Expr semicolon)" {
 ExprList: "(Expr (comma Indentation Expr)*)" {
 
 }
-
 ExprListStatement: "(ExprList semicolon)" {
 
 }
-private: "('private')" {
+private: "('private')" { pink }
+public: "('public')" { pink }
+protected: "('protected')" { pink }
 
-}
-public: "('public')" {
-
-}
-protected: "('protected')" {
-
-}
 // line feed
 Visibility: "((private | public | protected) colon newline)" {
 
