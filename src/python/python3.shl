@@ -3,153 +3,84 @@
 
 // keywords begin
 
-and: "('and')" {
-
-}
-as: "('as')" {
-
-}
-assert: "('assert')" {
-
-}
-break: "('break')" {
-
-}
-class: "'class'" {
-
-}
-continue: "('continue')" {
-
-}
-def: "('def')" {
-
-}
-del: "('del')" {
-
-}
-elif: "('elif')" {
-
-}
-else: "('else')" {
-
-}
-except: "('except')" {
-
-}
-False: "('False')" {
-
-}
-finally: "('finally')" {
-
-}
-for: "('for')" {
-
-}
-from: "('from')" {
-
-}
-global: "('global')" {
-
-}
-if: "('if')" {
-
-}
-import: "('import')" {
-
-}
-in: "('in')" {
-
-}
-is: "('is')" {
-
-}
-lambda: "('lambda')" {
-
-}
-None: "('None')" {
-
-}
-nonlocal: "('nonlocal')" {
-
-}
-not: "('not')" {
-
-}
-or: "('or')" {
-
-}
-pass: "('pass')" {
-
-}
-raise: "('raise')" {
-
-}
-return: "('return')" {
-
-}
-True: "('True')" {
-
-}
-try: "('try')" {
-
-}
-while: "('while')" {
-
-}
-with: "('with')" {
-
-}
-yield: "('yield')" {
-
-}
-self: "('self')" {
-
-}
-super: "('super')" {
-
-}
-None: "('None')" {
-
-}
+and: "('and')" { pink }
+as: "('as')" { pink }
+assert: "('assert')" { pink }
+break: "('break')" { pink }
+class: "'class'" { pink }
+continue: "('continue')" { pink }
+def: "('def')" { pink }
+del: "('del')" { pink }
+elif: "('elif')" { pink }
+else: "('else')" { pink }
+except: "('except')" { pink }
+False: "('False')" { pink }
+finally: "('finally')" { pink }
+for: "('for')" { pink }
+from: "('from')" { pink }
+global: "('global')" { pink }
+if: "('if')" { pink }
+import: "('import')" { pink }
+in: "('in')" { pink }
+is: "('is')" { pink }
+lambda: "('lambda')" { pink }
+None: "('None')" { pink }
+nonlocal: "('nonlocal')" { pink }
+not: "('not')" { pink }
+or: "('or')" { pink }
+pass: "('pass')" { pink }
+raise: "('raise')" { pink }
+return: "('return')" { pink }
+True: "('True')" { pink }
+try: "('try')" { pink }
+while: "('while')" { pink }
+with: "('with')" { pink }
+yield: "('yield')" { pink }
+self: "('self')" { white }
+super: "('super')" { purple }
+None: "('None')" { pink }
 
 str: "('str')" {
-
+  purple
 }
 int: "('int')" {
-
+  purple
 }
 float: "('float')" {
-
+  purple
 }
 complex: "('complex')" {
-
+  purple
 }
 list: "('list')" {
-
+  purple
 }
 tuple: "('tuple')" {
-
+  purple
+}
+range: "('range')" {
+  purple
 }
 dict: "('dict')" {
-
+  purple
 }
 set: "('set')" {
-
+  purple
 }
 frozenset: "('frozenset')" {
-
+  purple
 }
 bool: "('bool')" {
-
+  purple
 }
 bytes: "('bytes')" {
-
+  purple
 }
 bytearray: "('bytearray')" {
-
+  purple
 }
 memoryview: "('memoryview')" {
-
+  purple
 }
 
 // keywords end
@@ -164,36 +95,41 @@ IdentifierList: "(Identifier (comma Indentation Identifier)*)" {
 Where: "(Identifier ('.' Identifier)*)" {
 
 }
+WhereList: "(Where (comma Indentation Where)*)" {
 
+}
 ImportStatement: "((from Indentation Where Indentation)? import Indentation (asterisk | Where) (Indentation as Indentation Identifier)?)" {
 
 }
 
 SingleLineComment: "('#' (!newline .)*)" {
-
+  gray
 }
 MultiLineComment: "(StringLiteral2)" {
 
 }
+Comment: "(SingleLineComment | MultiLineComment)" {
+
+}
 
 DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? [0-9]*)?)" {
-
+  yellow
 }
 HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
-
+  yellow
 }
 OctLiteral: "('-'? '0' [0-7]+)" {
-
+  yellow
 }
 BoolLiteral: "(True | False)" {
 
 }
 ImaginaryLiteral: "(DecLiteral 'j')" {
-
+  yellow
 }
 // CharAtomic will be provided in preset
-StringLiteral1: "(double_quote CharAtomic* double_quote)" {
-
+StringLiteral1: "((double_quote CharAtomic* double_quote) | (single_quote CharAtomic* single_quote))" {
+  orange
 }
 ThreeSingleQuotes: "(single_quote single_quote single_quote)" {
 
@@ -202,13 +138,13 @@ ThreeDoubleQuotes: "(double_quote double_quote double_quote)" {
 
 }
 StringLiteral2: "((ThreeSingleQuotes (!ThreeSingleQuotes .)* ThreeSingleQuotes) | (ThreeDoubleQuotes (!ThreeDoubleQuotes .)* ThreeDoubleQuotes))" {
-
+  orange
 }
 StringLiteral: "(StringLiteral2 | StringLiteral1)" {
 
 }
 ByteLiteral: "('b' StringLiteral)" {
-
+  orange
 }
 Literal: "(ImaginaryLiteral | DecLiteral | HexLiteral | OctLiteral | BoolLiteral | StringLiteral | ByteLiteral | None)" {
 
@@ -368,7 +304,7 @@ Dict: "(lbrace (Literal Indentation Expr (comma Indentation Literal Indentation 
 
 }
 
-Parameter: "((Identifier single_equal Expr) | DataType | Expr)" {
+Parameter: "((Identifier single_equal Expr) | Expr | DataType)" {
 
 }
 
@@ -376,22 +312,36 @@ ParameterList: "(lparen (Parameter (comma Indentation Parameter)*)? rparen)" {
 
 }
 
+CALL: "(Identifier ParameterList Slice?)" {
+  $0 = green
+}
+VAR: "(self | super | (Identifier Slice?))" {
+
+}
 // solved *print("sb")*
-ClassExpr2: "(((self | super | Identifier) ParameterList? '.')* (self | super | Identifier) ParameterList?)" {
-
+ClassExpr2: "(((ParenExpr | CALL | VAR) '.')* (CALL | VAR))" {
 }
-StringExpr: "(StringLiteral '.' Identifier ParameterList?)" {
-
+StringExpr: "(StringLiteral '.' Identifier ParameterList)" {
+  $1 = green
 }
 
-Variable: "((ClassExpr2) Slice?)" {
+Variable: "(ClassExpr2)" {
 
 }
 VariableList: "(Variable (comma Indentation Variable)*)" {
 
 }
-// TODO: now Expr does not support parentheses, to be continued...
-Expr: "(Atomic | Comparison | Variable | List | Tuple | Dict | StringExpr | Literal)" {
+ParenExpr: "(lparen Expr rparen)" {
+
+}
+IDX: "(Expr (lbracket Expr rbracket)+)" {
+
+}
+DataTypeExpr: "(List | Tuple | Dict | Range)" {
+
+}
+Expr: "(Atomic | Comparison | IDX | DataTypeExpr | Variable | StringExpr | Literal)" {
+
 }
 
 ExprList: "(Expr (comma Indentation Expr)*)" {
@@ -402,15 +352,19 @@ Assignment: "(VariableList (Indentation '=' Indentation ExprList !lparen)+)" {
 
 }
 
-DelStatement: "(del Indentation ClassExpr2)" {
+DelStatement: "(del Indentation Where)" {
 
 }
 // assume that exception has only one argument
-RaiseStatement: "(raise Identifier lparen Expr rparen)" {
+RaiseStatement: "(raise Expr)" {
 
 }
 
-Statement: "(Assignment | GlobalStatement | DelStatement | RaiseStatement)" {
+ReturnStatement: "(return (Indentation ExprList)?)" {
+
+}
+
+Statement: "(ImportStatement | Assignment | GlobalStatement | DelStatement | RaiseStatement | ReturnStatement)" {
 
 }
 
@@ -426,13 +380,12 @@ GlobalStatement: "(global Indentation IdentifierList)" {
 
 }
 
-// TODO: only head here, waiting for full expression with block
+// only head here, waiting for full expression with block
 DefHead: "(def Indentation Identifier ArgumentList colon)" {
-
+  $2 = cyan
 }
-
-ClassHead: "(class Indentation Identifier (lparen IdentifierList rparen)? colon)" {
-
+ClassHead: "(class Indentation Identifier (lparen WhereList rparen)? colon)" {
+  $2 = cyan
 }
 
 IfHead: "(if Indentation Expr colon)" {
@@ -447,7 +400,11 @@ ElseHead: "(else colon)" {
 WhileHead: "(while Indentation Expr colon)" {
 
 }
-ForHead: "(for Indentation Identifier Indentation in Indentation Variable colon)" {
+// TODO:
+Range: "(range ArgumentList)" {
+
+}
+ForHead: "(for Indentation Identifier Indentation in Indentation (Variable | Range) colon)" {
 
 }
 TryHead: "(try colon)" {

@@ -1,62 +1,74 @@
 // keywords begin
-package: "('package')" { }
-import: "('import')" { }
-class: "('class')" { }
-extends: "('extends')" { }
-implements: "('implements')" { }
-interface: "('interface')" { }
+package: "('package')" { pink }
+import: "('import')" { pink }
+class: "('class')" { pink }
+extends: "('extends')" { pink }
+implements: "('implements')" { pink }
+interface: "('interface')" { pink }
 
-synchronized: "('synchronized')" { }
-final: "('final')" { }
-String: "('String')" { }
-boolean: "('boolean')" { }
-byte: "('byte')" { }
-char: "('char')" { }
-int: "('int')" { }
-long: "('long')" { }
-double: "('double')" { }
-float: "('float')" { }
-short: "('short')" { }
-void: "('void')" { }
-this: "('this')" { }
-super: "('super')" { }
-return: "('return')" { }
+synchronized: "('synchronized')" { pink }
+final: "('final')" { pink }
+String: "('String')" { blue }
+boolean: "('boolean')" { pink }
+byte: "('byte')" { pink }
+char: "('char')" { pink }
+int: "('int')" { pink }
+long: "('long')" { pink }
+double: "('double')" { pink }
+float: "('float')" { pink }
+short: "('short')" { pink }
+void: "('void')" { pink }
+this: "('this')" { pink }
+super: "('super')" { pink }
+return: "('return')" { pink }
+true: "('true')" { pink }
+false: "('false')" { pink }
 
-new: "('new')" { }
-null: "('null')" { }
-abstract: "('abstract')" { }
-static: "('static')" { }
-default: "('default')" { }
-private: "('private')" { }
-protected: "('protected')" { }
-public: "('public')" { }
-throw: "('throw')" { }
-throws: "('throws')" { }
+new: "('new')" { pink }
+null: "('null')" { pink }
+abstract: "('abstract')" { pink }
+static: "('static')" { pink }
+default: "('default')" { pink }
+private: "('private')" { pink }
+protected: "('protected')" { pink }
+public: "('public')" { pink }
+throw: "('throw')" { pink }
+throws: "('throws')" { pink }
 
-try: "('try')" { }
-catch: "('catch')" { }
-finally: "('finally')" { }
+try: "('try')" { pink }
+catch: "('catch')" { pink }
+finally: "('finally')" { pink }
 
-for: "('for')" { }
-do: "('do')" { }
-while: "('while')" { }
-break: "('break')" { }
-continue: "('continue')" { }
+for: "('for')" { pink }
+do: "('do')" { pink }
+while: "('while')" { pink }
+break: "('break')" { pink }
+continue: "('continue')" { pink }
 
-if: "('if')" { }
-else: "('else')" { }
+if: "('if')" { pink }
+else: "('else')" { pink }
 
-switch: "('switch')" { }
-case: "('case')" { }
+switch: "('switch')" { pink }
+case: "('case')" { pink }
 
-instanceof: "('instanceof')" { }
+instanceof: "('instanceof')" { pink }
 
 // keywords end
 
 // grammar begin
 
+SingleLineComment: "('//' until_newline)" {
+  gray
+}
+MultiLineComment: "('/*' (!multi_comment_tail .)* '*/')" {
+  gray
+}
+Comment: "(SingleLineComment | MultiLineComment)" {
+
+}
+
 Identifier: "(([a-zA-Z] | '_' | '$') ([a-zA-Z0-9] | '_')*)" {
-  black
+
 }
 
 Visibility: "(default | public | protected | private)" {
@@ -67,9 +79,10 @@ PrimDataType: "(boolean | byte | char | double | float | short | long | int | St
 
 }
 PackageDataType: "((Identifier '.')* Identifier)" {
-
+  for (i = 0; -0; 2)
+    $i = cyan
 }
-DataType: "((PrimDataType | PackageDataType) '[]'*)" {
+DataType: "((PrimDataType | PackageDataType))" {
 
 }
 ReturnType: "(DataType | void)" {
@@ -79,13 +92,13 @@ ReturnType: "(DataType | void)" {
 
 // statements
 PackageClass: "(('*' | Identifier) ('.' ('*' | Identifier))*)" {
+  cyan
+}
+ImportStatement: "(import Indent PackageClass semicolon Indent)" {
 
 }
-ImportStatement: "(import Indent PackageClass semicolon)" {
 
-}
-
-Argument: "(DataType Indent Identifier)" {
+Argument: "(DataType Indent Identifier ('[]')*)" {
 
 }
 // revised a bug here
@@ -94,30 +107,35 @@ ArgumentList: "(lparen (Argument (comma Indent Argument)*)? rparen)" {
 }
 // Method checked
 Method: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList Indent Block)" {
-
+  $-4 = green
 }
 DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-') [0-9]*)?)" {
-
+  yellow
 }
 HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
-
+  yellow
 }
 OctLiteral: "('-'? '0' [0-7]+)" {
-
+  yellow
 }
 BoolLiteral: "(true | false)" {
 
 }
 // CharAtomic will be provided in preset
 StringLiteral: "(double_quote CharAtomic* double_quote)" {
-
+  orange
 }
 CharLiteral: "(single_quote CharAtomic single_quote)" {
-
+  orange
 }
 Literal: "(DecLiteral | HexLiteral | OctLiteral | BoolLiteral | CharLiteral | StringLiteral | null)" {
 
 }
+
+IDX: "(Expr (lbracket Expr rbracket)+)" {
+
+}
+
 EQ: "(Expr Indent '==' Indent Expr)" {
 
 }
@@ -210,44 +228,50 @@ LSH: "(Expr Indent '<<' Indent Expr)" {
 RSH: "(Expr Indent '>>' Indent Expr)" {
 
 }
-U_RSH: "(Expr Indent '>>>' Indent Expr)" {
-
-}
 SELF_LSH: "(Expr Indent '<<=' Indent Expr)" {
 
 }
 SELF_RSH: "(Expr Indent '>>=' Indent Expr)" {
 
 }
-Comparison: "(EQ | NEQ | LEQ | LE | GEQ | GE | AND | OR | NOT)" {
+COND: "(Expr Indent question_mark Indent Expr Indent colon Indent Expr)" {
 
 }
-Atomic: "(ADD | SUB | MUL | DIV | MOD | INC | DEC | B_AND | B_OR | B_NOT | XOR | LSH | RSH | U_RSH | SELF_ADD | SELF_SUB | SELF_MUL | SELF_DIV | SELF_MOD | SELF_B_AND | SELF_B_OR | SELF_XOR | SELF_LSH | SELF_RSH)" {
+PAREN: "(lparen Expr rparen)" {
 
 }
-ParenExpr: "('(' Expr ')')" {
+
+// test here
+CALL: "((Expr ('.'))* Identifier ParameterList)" {
+  $-2 = green
+}
+VAR: "((Expr ('.'))* Identifier ParameterList?)" {
+  $-1 = green
+}
+PureAssignment: "(Expr equals Expr)" {
 
 }
+CompositeAssignment: "(SELF_ADD | SELF_SUB | SELF_MUL | SELF_DIV | SELF_MOD | SELF_B_AND | SELF_B_OR | SELF_XOR | SELF_LSH | SELF_RSH)" {
+
+}
+NewExpr: "(new Indent DataType (lbracket Expr rbracket)* TemplateList? ParameterList?)" {
+
+}
+Expr: "(PureAssignment | CompositeAssignment | NewExpr | COND | OR | AND | B_OR | XOR | B_AND | EQ | NEQ | LE | LEQ | GE | GEQ | LSH | RSH | ADD | SUB | MUL | DIV | MOD | NOT | DEREF | ADDR | INC | DEC | IDX | CALL | VAR | PAREN | Literal)" {
+
+}
+
 ParameterList: "(lparen (Expr (comma Indent Expr)*)? rparen)" {
 
 }
 TemplateList: "langle  ((DataType) (comma Indent DataType)*)?  rangle" {
 
 }
-NewExpr: "(new Indent DataType TemplateList? ParameterList)" {
-
+VariableName: "Identifier" {
+  blue
 }
-ClassExpr1: "(NewExpr '.' Identifier ParameterList?)" {
 
-}
-// TODO: I think potential bugs will occur here, either ClassExpr1 or ClassExpr2
-ClassExpr2: "((Identifier '.')* Identifier ParameterList?)" {
-
-}
-Expr: "(Atomic | Comparison | ClassExpr1 | NewExpr | ClassExpr2 | Literal | Identifier | ParenExpr)" {
-
-}
-Declaration: "(DataType Indent Identifier equals Expr (comma Indent Identifier equals Expr)*)" {
+Declaration: "(DataType ('[]')* Indent VariableName (equals Expr)? (comma Indent VariableName (equals Expr)?)*)" {
 
 }
 DeclarationStatement: "(Declaration semicolon)" {
@@ -259,14 +283,19 @@ ExprStatement: "(Expr semicolon)" {
 ReturnStatement: "(return (Indent Expr)? semicolon)" {
 
 }
-Statement: "(DeclarationStatement | ExprStatement | ReturnStatement | IfStatement | ForLoop | WhileLoop | DoWhileLoop)" {
+BreakStatement: "(break semicolon)" {
 
 }
-Block: "(lbrace Indent ((Method | Statement) Indent)* rbrace)" {
+ContinueStatement: "(continue semicolon)" {
 
 }
-// slightly revised here, but no test
-Class: "(Visibility Indent class Indent Identifier (Indent extends Indent Identifier)? (Indent implements Indent Identifier (comma Indent Identifier)*)? (Indent throws Indent Identifier (comma Indent Identifier)*)? Indent Block)" {
+Statement: "(DeclarationStatement | BreakStatement | ContinueStatement | ExprStatement | ReturnStatement | IfStatement | ForLoop | WhileLoop | DoWhileLoop)" {
+
+}
+Block: "(lbrace Indent ((Method | Statement | Comment) Indent)* rbrace)" {
+
+}
+Class: "(Visibility Indent class Indent VariableName (Indent extends Indent VariableName)? (Indent implements Indent VariableName (comma Indent VariableName)*)? (Indent throws Indent VariableName (comma Indent VariableName)*)? Indent Block)" {
 
 }
 Branch: "(semicolon | Statement | Block)" {

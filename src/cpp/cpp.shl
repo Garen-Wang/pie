@@ -116,7 +116,7 @@ SingleLineComment: "(single_comment_head until_newline)" {
   gray
 }
 MultiLineComment: "(multi_comment_head (!multi_comment_tail .)* multi_comment_tail)" {
-  gray
+  italic gray
 }
 
 Comment: "(SingleLineComment | MultiLineComment)" { }
