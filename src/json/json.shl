@@ -1,0 +1,30 @@
+Number: "('-'? ('0' | ([1-9] [0-9]*)))" {
+
+}
+String: "(double_quote CharAtomic* double_quote)" {
+
+}
+true: "('true')" {
+
+}
+false: "('false')" {
+
+}
+Boolean: "(true | false)" {
+
+}
+null: "('null')" {
+
+}
+Array: "(lbracket (JSON (comma Indent JSON)*)? rbracket)" {
+
+}
+Object: "(lbrace (Pair (comma Indent Pair)*)? rbrace)" {
+
+}
+Pair: "(String Indent colon Indent JSON)" {
+
+}
+JSON: "(Number | String | Boolean | Array | Object | null)" {
+
+}
