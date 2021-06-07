@@ -2,23 +2,23 @@ cmake_minimum_required(VERSION 3.14)
 
 # add dependency
 include(cmake/CPM.cmake)
-CPMAddPackage( gh:Garen-Wang/PEGParser@2.2.1 )
+CPMAddPackage(gh:Garen-Wang/PEGParser@2.2.2)
 
 # cpp parser
-project(cpp_parser)
+# project(cpp_parser)
 
-add_executable(cpp_parser
-  src/cpp/main.cpp
-    )
+# add_executable(cpp_parser
+#   src/cpp/main.cpp
+#     )
 
-target_include_directories(cpp_parser
-  PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-)
+# target_include_directories(cpp_parser
+#   PRIVATE
+#     ${PROJECT_SOURCE_DIR}/include
+# )
 
 
-target_link_libraries(cpp_parser PEGParser::PEGParser)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+# target_link_libraries(cpp_parser PEGParser::PEGParser)
+# target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # shl
 project(shl)
