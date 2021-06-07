@@ -42,6 +42,13 @@ struct Style {
         italic(false),
         underlined(false),
         strikethrough(false) {}
+  explicit Style(_Color fg)
+      : fg(fg),
+        bg(255, 255, 255),
+        bold(false),
+        italic(false),
+        underlined(false),
+        strikethrough(false) {}
 
   friend std::ostream& operator<<(std::ostream& out, const Style& style) { return out << style.fg; }
 };
@@ -85,7 +92,9 @@ namespace shl {
 
   std::pair<bool, Parser> generateParserFromSHL(const std::string& filename);
 
-  void initParserBuilder(ParserBuilder& g, Colors& colors);
-}
+  bool renderSyntaxHighlightForSHL(const std::string& filename);
+
+  void initParserBuilder(ParserBuilder& g, Colors& colors, bool render = false);
+}  // namespace shl
 
 #endif //PYTHON_PARSER_PARSER_BUILDER_H

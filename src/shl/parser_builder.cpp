@@ -67,14 +67,16 @@ namespace shl {
     try {
       auto output = g.run(shlFile, gen);
 //      gen["Identifier"] >> [](auto) {
-//        std::cout << "11" << std::endl;
-//        return "Identifier";
-//      };
+      //        std::cout << "11" << std::endl;
+      //        return "Identifier";
+      //      };
       //    std::cout << "Parsing result: " << output << std::endl;
-    } catch (peg_parser::SyntaxError &e) {
+    } catch (peg_parser::SyntaxError& e) {
       flag = false;
       std::cout << "ParserBuilder: Syntax error when parsing " << e.syntax->rule->name << std::endl;
     }
     return std::make_pair(flag, gen);
   }
-}
+
+  bool renderSyntaxHighlightForSHL(const std::string& filename) { return false; }
+}  // namespace shl
