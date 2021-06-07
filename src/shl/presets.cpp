@@ -190,21 +190,18 @@ namespace shl {
     };
   }
 
-  void initParserBuilder(ParserBuilder& g, Colors& colors) {
+  void initParserBuilder(ParserBuilder& g, Colors& colors, bool render) {
     // it seems that setSeparator cannot work properly, maybe need to be removed
     g.setSeparator(g["Separators"] << "['\t''\n' ]");
-    g["Identifier"] << "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" >> [](auto s, Parser&) {
-      return nullptr;
-    };
-    g["GrammarExpr"] << R"(('"' (!'"' .)* '"'))" >> [](auto, Parser&) {
-      return nullptr;
-    };
+    g["Identifier"] << "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" >>
+        [](auto s, Parser&) { return nullptr; };
+    g["GrammarExpr"] << R"(('"' (!'"' .)* '"'))" >> [](auto, Parser&) { return nullptr; };
     g["Indent"] << "(['\t''\n' ]*)" >> [](auto, Parser&) { return nullptr; };
     g["EmptyBlock"] << "('{' Indent '}')" >> [](auto, Parser&) { return nullptr; };
     g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >>
         [](auto s, Parser& gen) { return s[1].evaluate(gen); };
     g["equals"] << "(Indent '=' Indent)" >> [](auto, Parser&) { return nullptr; };
-    g["size"] << "('size')" >> [](auto, Parser&) { return nullptr; };
+    g["for"] << "('for')" >> [](auto s, Parser&) { return nullptr; };
     g["ForStmt"] << "('for' ['\t' ]* '(' Identifier equals Index ';' ['\t' ]* Index ';' ['\t' ]* "
                     "Index ')' ['\t''\n' ]* '$' Identifier equals Attr)"
         >> [](auto s, Parser& gen) {
@@ -239,7 +236,7 @@ namespace shl {
             std::shared_ptr<SyntaxHighlightInfos> x = s[i].evaluate(gen);
             ret->insert(ret->end(), x->begin(), x->end());
           }
-          std::cout << ret << std::endl;
+          // std::cout << ret << std::endl;
           return std::shared_ptr<SyntaxHighlightInfos>(ret);
         };
     g["Block"] << "(EmptyBlock | OnlyBlock | MultiBlock)";
@@ -266,13 +263,13 @@ namespace shl {
               attr.strikethrough = true;
             } else if (colors.exist(str)) {
               attr.fg = colors.get(str);
-              std::cout << "color: " << str << std::endl;
+              // std::cout << "color: " << str << std::endl;
             } else {
-              std::cout << "unknown keyword" << std::endl;
+              std::cerr << "unknown keyword" << std::endl;
             }
           }
           ret->push_back(SyntaxHighlightInfo(attr));
-          std::cout << ret << std::endl;
+          // std::cout << ret << std::endl;
           return std::shared_ptr<SyntaxHighlightInfos>(ret);
         };
     g["Comment"] << "('//' (!'\n' .)*)" >> [](auto, Parser&) {
@@ -285,7 +282,7 @@ namespace shl {
       auto grammarExpr = s[1].string().substr(1, s[1].string().length() - 2);
       auto syntaxHighlightInfos = s[2].evaluate(gen);
       if (syntaxHighlightInfos != nullptr) {
-        std::cout << "---" << syntaxHighlightInfos << std::endl;
+        // std::cout << "---" << syntaxHighlightInfos << std::endl;
         gen[identifier] << grammarExpr >> [=](auto ss) {
           if (identifier == "Identifier" || isLowercase(identifier)) {
             identifiers.insert(ss.string());
@@ -370,8 +367,10 @@ std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
       auto temp = generateParserFromSHL("../src/python/python3.shl");
       if (temp.first) {
         auto gen = temp.second;
-        gen["Grammar"] << "(Heads | Statement | Expr)";
-        gen["Program"] << "((ImportStatement '\n')* InitBlocks Block)";
+        gen["Grammar"] << "(Comment | ((Heads | Statement | Expr) Comment?))";
+        gen["Program"] << "(InitBlocks Block)";
+
+        //        gen["Program"] << "Expr";
         gen.setStart(gen["Program"]);
         return std::make_pair(true, gen);
       } else return temp;
