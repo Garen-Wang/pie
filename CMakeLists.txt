@@ -1,35 +1,52 @@
 cmake_minimum_required(VERSION 3.14)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # add dependency
 include(cmake/CPM.cmake)
 CPMAddPackage(gh:Garen-Wang/PEGParser@2.2.2)
 
-# cpp parser
-# project(cpp_parser)
-
-# add_executable(cpp_parser
-#   src/cpp/main.cpp
-#     )
-
-# target_include_directories(cpp_parser
-#   PRIVATE
-#     ${PROJECT_SOURCE_DIR}/include
-# )
-
-
-# target_link_libraries(cpp_parser PEGParser::PEGParser)
-# target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-
 # shl
-project(shl)
+project(pie VERSION 0.1 LANGUAGES CXX)
 
-add_executable(shl
-    src/shl/main.cpp
-    include/shl/parser_builder.h include/shl/presets.h src/shl/presets.cpp src/shl/parser_builder.cpp)
-
-target_include_directories(shl
-    PRIVATE
+add_library(
+    shl
+    ${PROJECT_SOURCE_DIR}/src/shl/parser_builder.cpp
+    ${PROJECT_SOURCE_DIR}/src/shl/presets.cpp
+)
+target_include_directories(
+    shl
+    PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/shl
+    INTERFACE
     ${PROJECT_SOURCE_DIR}/include
-    )
+)
 target_link_libraries(shl PEGParser::PEGParser)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+set(CMAKE_AUTOMOC ON) 
+qt5_wrap_cpp(window_src ${PROJECT_SOURCE_DIR}/include/ui/window.hpp)
+qt5_wrap_cpp(textArea_src ${PROJECT_SOURCE_DIR}/include/ui/textArea.hpp)
+
+add_executable(pie
+  ${PROJECT_SOURCE_DIR}/src/ui/config.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/rope.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/actions.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/modes.cpp
+
+  ${window_src}
+  ${textArea_src}
+  ${PROJECT_SOURCE_DIR}/src/ui/textArea.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/window.cpp
+
+  ${PROJECT_SOURCE_DIR}/src/ui/main.cpp
+)
+include_directories(
+    PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/ui
+    INTERFACE
+    ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(pie Qt5::Core Qt5::Widgets shl)
