@@ -30,19 +30,19 @@ public:
   }
 };
 
-struct Style {
+struct _Style {
   _Color fg, bg;
   bool bold, italic;
   bool underlined, strikethrough;
 
-  explicit Style()
+  explicit _Style()
       : fg(255, 255, 255),
         bg(255, 255, 255),
         bold(false),
         italic(false),
         underlined(false),
         strikethrough(false) {}
-  explicit Style(_Color fg)
+  explicit _Style(_Color fg)
       : fg(fg),
         bg(255, 255, 255),
         bold(false),
@@ -50,7 +50,9 @@ struct Style {
         underlined(false),
         strikethrough(false) {}
 
-  friend std::ostream& operator<<(std::ostream& out, const Style& style) { return out << style.fg; }
+  friend std::ostream& operator<<(std::ostream& out, const _Style& style) {
+    return out << style.fg;
+  }
 };
 
 using Attr = Style;
@@ -67,7 +69,7 @@ namespace shl {
   };
 
   typedef std::vector<SyntaxHighlightInfo> SyntaxHighlightInfos;
-  typedef peg_parser::ParserGenerator<std::string> Parser;
+  typedef peg_parser::ParserGenerator<std::string, Rope*> Parser;
   typedef peg_parser::ParserGenerator<std::shared_ptr<SyntaxHighlightInfos>, Parser&> ParserBuilder;
 
   class Colors {

@@ -15,122 +15,51 @@ namespace shl {
   void initSHLGrammar(ParserBuilder& g) {
     g["InitParserBuilder"] << "''" >> [](auto, Parser& gen) {
       // preset for parserBuilder
-      gen["lparen"] << "('(')" >> [](auto) {
-        return "lparen";
-      };
-      gen["rparen"] << "(')')" >> [](auto) {
-        return "rparen";
-      };
-      gen["langle"] << "('<')" >> [](auto) {
-        return "langle";
-      };
-      gen["rangle"] << "('>')" >> [](auto) {
-        return "rangle";
-      };
-      gen["lbrace"] << "('{')" >> [](auto) {
-        return "lbrace";
-      };
-      gen["rbrace"] << "('}')" >> [](auto) {
-        return "rbrace"; };
-      gen["comma"] << "(',')" >> [](auto) { return "comma"; };
-      gen["colon"] << "(':')" >> [](auto) { return "colon"; };
-      gen["semicolon"] << "(';')" >> [](auto) { return "semicolon"; };
+      gen["lparen"] << "('(')" >> [](auto, Rope*) { return "lparen"; };
+      gen["rparen"] << "(')')" >> [](auto, Rope*) { return "rparen"; };
+      gen["langle"] << "('<')" >> [](auto, Rope*) { return "langle"; };
+      gen["rangle"] << "('>')" >> [](auto, Rope*) { return "rangle"; };
+      gen["lbrace"] << "('{')" >> [](auto, Rope*) { return "lbrace"; };
+      gen["rbrace"] << "('}')" >> [](auto, Rope*) { return "rbrace"; };
+      gen["comma"] << "(',')" >> [](auto, Rope*) { return "comma"; };
+      gen["colon"] << "(':')" >> [](auto, Rope*) { return "colon"; };
+      gen["semicolon"] << "(';')" >> [](auto, Rope*) { return "semicolon"; };
       // TODO: bug here, but have no idea to fix
-      gen["single_quote"] << "[']" >> [](auto) { return "single_quote"; };
-      gen["double_quote"] << "('\"')" >> [](auto) { return "double_quote"; };
-      gen["single_equal"] << "('=')" >> [](auto) { return "single_equal"; };
-      gen["equals"] << "Indent single_equal Indent" >> [](auto) { return "equals"; };
-      gen["double_equal"] << "('==')" >> [](auto) {
-        return "double_equal";
-      };
-      gen["newline"] << "('\n')" >> [](auto) {
-        return "newline";
-      };
-      gen["until_newline"] << "((!'\n' .)*)" >> [](auto) {
-        return "until_newline";
-      };
-      gen["tab"] << "('\t')" >> [](auto) {
-        return "tab";
-      };
-      gen["space"] << "(' ')" >> [](auto) {
-        return "space";
-      };
-      gen["Indent"] << "(['\t''\n' ]*)" >> [](auto) {
-        return "Indent";
-      };
-      gen["Indentation"] << "(' '*)" >> [](auto) {
-        return "Indentation";
-      };
-      gen["lbracket"] << "('[')" >> [](auto) {
-        return "lbracket";
-      };
-      gen["rbracket"] << "(']')" >> [](auto) {
-        return "rbracket";
-      };
-      gen["question_mark"] << "('?')" >> [](auto) {
-        return "question_mark";
-      };
-      gen["bell"] << "('\a')" >> [](auto) {
-        return "bell";
-      };
-      gen["backspace"] << "('\b')" >> [](auto) {
-        return "backspace";
-      };
-      gen["carriage_ret"] << "('\r')" >> [](auto) {
-        return "carriage_ret";
-      };
+      gen["single_quote"] << "[']" >> [](auto, Rope*) { return "single_quote"; };
+      gen["double_quote"] << "('\"')" >> [](auto, Rope*) { return "double_quote"; };
+      gen["single_equal"] << "('=')" >> [](auto, Rope*) { return "single_equal"; };
+      gen["equals"] << "Indent single_equal Indent" >> [](auto, Rope*) { return "equals"; };
+      gen["double_equal"] << "('==')" >> [](auto, Rope*) { return "double_equal"; };
+      gen["newline"] << "('\n')" >> [](auto, Rope*) { return "newline"; };
+      gen["until_newline"] << "((!'\n' .)*)" >> [](auto, Rope*) { return "until_newline"; };
+      gen["tab"] << "('\t')" >> [](auto, Rope*) { return "tab"; };
+      gen["space"] << "(' ')" >> [](auto, Rope*) { return "space"; };
+      gen["Indent"] << "(['\t''\n' ]*)" >> [](auto, Rope*) { return "Indent"; };
+      gen["Indentation"] << "(' '*)" >> [](auto, Rope*) { return "Indentation"; };
+      gen["lbracket"] << "('[')" >> [](auto, Rope*) { return "lbracket"; };
+      gen["rbracket"] << "(']')" >> [](auto, Rope*) { return "rbracket"; };
+      gen["question_mark"] << "('?')" >> [](auto, Rope*) { return "question_mark"; };
+      gen["bell"] << "('\a')" >> [](auto, Rope*) { return "bell"; };
+      gen["backspace"] << "('\b')" >> [](auto, Rope*) { return "backspace"; };
+      gen["carriage_ret"] << "('\r')" >> [](auto, Rope*) { return "carriage_ret"; };
 
-      gen["excl"] << "('!')" >> [](auto) {
-        return "excl";
-      };
-      gen["space"] << "(' ')" >> [](auto) {
-        return "space";
-      };
-      gen["hash"] << "('#')" >> [](auto) {
-        return "hash";
-      };
-      gen["dollar"] << "('$')" >> [](auto) {
-        return "dollar";
-      };
-      gen["percent"] << "('%')" >> [](auto) {
-        return "percent";
-      };
-      gen["ampersand"] << "('&')" >> [](auto) {
-        return "ampersand";
-      };
-      gen["asterisk"] << "('*')" >> [](auto) {
-        return "asterisk";
-      };
-      gen["plus"] << "('+')" >> [](auto) {
-        return "plus";
-      };
-      gen["minus"] << "('-')" >> [](auto) {
-        return "minus";
-      };
-      gen["dot"] << "('.')" >> [](auto) {
-        return "dot";
-      };
-      gen["slash"] << "('/')" >> [](auto) {
-        return "slash";
-      };
-      gen["backslash"] << "('\\\\')" >> [](auto) {
-        return "backslash";
-      };
-      gen["underscore"] << "('_')" >> [](auto) {
-        return "underscore";
-      };
-      gen["caret"] << "('^')" >> [](auto) {
-        return "caret";
-      };
-      gen["back_quote"] << "('`')" >> [](auto) {
-        return "back_quote";
-      };
-      gen["tilda"] << "('~')" >> [](auto) {
-        return "tilda";
-      };
-      gen["vertical_bar"] << "('|')" >> [](auto) {
-        return "vertical_bar";
-      };
+      gen["excl"] << "('!')" >> [](auto, Rope*) { return "excl"; };
+      gen["space"] << "(' ')" >> [](auto, Rope*) { return "space"; };
+      gen["hash"] << "('#')" >> [](auto, Rope*) { return "hash"; };
+      gen["dollar"] << "('$')" >> [](auto, Rope*) { return "dollar"; };
+      gen["percent"] << "('%')" >> [](auto, Rope*) { return "percent"; };
+      gen["ampersand"] << "('&')" >> [](auto, Rope*) { return "ampersand"; };
+      gen["asterisk"] << "('*')" >> [](auto, Rope*) { return "asterisk"; };
+      gen["plus"] << "('+')" >> [](auto, Rope*) { return "plus"; };
+      gen["minus"] << "('-')" >> [](auto, Rope*) { return "minus"; };
+      gen["dot"] << "('.')" >> [](auto, Rope*) { return "dot"; };
+      gen["slash"] << "('/')" >> [](auto, Rope*) { return "slash"; };
+      gen["backslash"] << "('\\\\')" >> [](auto, Rope*) { return "backslash"; };
+      gen["underscore"] << "('_')" >> [](auto, Rope*) { return "underscore"; };
+      gen["caret"] << "('^')" >> [](auto, Rope*) { return "caret"; };
+      gen["back_quote"] << "('`')" >> [](auto, Rope*) { return "back_quote"; };
+      gen["tilda"] << "('~')" >> [](auto, Rope*) { return "tilda"; };
+      gen["vertical_bar"] << "('|')" >> [](auto, Rope*) { return "vertical_bar"; };
 
       // CharAtomic is provided here
       // sorry, '\0' cannot be expressed in preset grammar
@@ -140,7 +69,7 @@ namespace shl {
                  "percent | ampersand | lparen | rparen | asterisk | plus | comma | minus | dot | "
                  "slash | lbracket | backslash | rbracket | caret | underscore | back_quote | "
                  "lbrace | vertical_bar | rbrace | tilda | colon | semicolon | langle | rangle))"
-          >> [](auto) { return "CharAtomic"; };
+          >> [](auto, Rope*) { return "CharAtomic"; };
 
       return nullptr;
     };
@@ -148,44 +77,47 @@ namespace shl {
       gen["InitBlocks"] << "''" << [&](auto&) -> bool {
         indentDepth.clear();
         return true;
-      } >> [](auto) { return "InitBlocks"; };
-      gen["SameIndentation"] << "Indentation" << [&](auto &s) -> bool {
+      } >> [](auto, Rope*) { return "InitBlocks"; };
+      gen["SameIndentation"] << "Indentation" << [&](auto& s) -> bool {
         return s->length() == indentDepth.back();
-      } >> [](auto) { return "SameIndentation"; };
+      } >> [](auto, Rope*) { return "SameIndentation"; };
       gen["SameIndentation"]->cacheable = false;
 
-      gen["DeepIndentation"] << "Indentation" << [&](auto &s) -> bool {
+      gen["DeepIndentation"] << "Indentation" << [&](auto& s) -> bool {
         return s->length() > indentDepth.back();
-      } >> [](auto) { return "DeepIndentation"; };
+      } >> [](auto, Rope*) { return "DeepIndentation"; };
       gen["DeepIndentation"]->cacheable = false;
 
-      gen["EnterBlock"] << "Indentation" << [&](auto &s) -> bool {
+      gen["EnterBlock"] << "Indentation" << [&](auto& s) -> bool {
         if (indentDepth.empty() || s->length() > indentDepth.back()) {
           indentDepth.push_back(s->length());
           return true;
-        } else return false;
-      } >> [](auto) { return "EnterBlock"; };
+        } else
+          return false;
+      } >> [](auto, Rope*) { return "EnterBlock"; };
       gen["EnterBlock"]->cacheable = false;
 
-      gen["Line"] << "SameIndentation Grammar '\n'" >> [](auto) { return "Line"; };
+      gen["Line"] << "SameIndentation Grammar '\n'" >> [](auto, Rope*) { return "Line"; };
       gen.getRule("Line")->cacheable = false;
 
-      gen["EmptyLine"] << "Indentation '\n'" >> [](auto) { return "EmptyLine"; };
+      gen["EmptyLine"] << "Indentation '\n'" >> [](auto, Rope*) { return "EmptyLine"; };
 
       gen["ExitBlock"] << "''" << [&](auto&) -> bool {
         indentDepth.pop_back();
         return true;
-      } >> [](auto) { return "ExitBlock"; };
+      } >> [](auto, Rope*) { return "ExitBlock"; };
       gen.getRule("ExitBlock")->cacheable = false;
 
-      gen["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >> [&](auto e) {
-        for (auto x : e) x.evaluate();
-        //    blocks.push_back(Block{e.position(), e.length()});
-        //    std::cout << "position: from " << e.position() << " to " << e.position() + e.length() << std::endl;
-        blockRecords.push_back(std::make_pair(e.position(), e.length()));
-        //    std::cout << "line from " << temp.first << " to " << temp.second << std::endl;
-        return "Block";
-      };
+      gen["Block"] << "&EnterBlock Line (EmptyLine | Block | Line)* &ExitBlock" >>
+          [&](auto e, Rope*) {
+            for (auto x : e) x.evaluate();
+            //    blocks.push_back(Block{e.position(), e.length()});
+            //    std::cout << "position: from " << e.position() << " to " << e.position() +
+            //    e.length() << std::endl;
+            blockRecords.push_back(std::make_pair(e.position(), e.length()));
+            //    std::cout << "line from " << temp.first << " to " << temp.second << std::endl;
+            return "Block";
+          };
       return nullptr;
     };
   }
@@ -252,23 +184,23 @@ namespace shl {
           auto ret = new SyntaxHighlightInfos;
 
           for (int i = 0; i < s.size(); i += 2) {
-            auto str = s[i].string();
+            std::string str = s[i].string();
             if (str == "bold") {
               attr.bold = true;
             } else if (str == "italic") {
               attr.italic = true;
             } else if (str == "underlined") {
-              attr.underlined = true;
+              attr.underline = true;
             } else if (str == "strikethrough") {
               attr.strikethrough = true;
             } else if (colors.exist(str)) {
-              attr.fg = colors.get(str);
+              attr.fg = QColor(str.c_str());
               // std::cout << "color: " << str << std::endl;
             } else {
               std::cerr << "unknown keyword" << std::endl;
             }
           }
-          ret->push_back(SyntaxHighlightInfo(attr));
+          ret->emplace_back(attr);
           // std::cout << ret << std::endl;
           return std::shared_ptr<SyntaxHighlightInfos>(ret);
         };
@@ -283,33 +215,35 @@ namespace shl {
       auto syntaxHighlightInfos = s[2].evaluate(gen);
       if (syntaxHighlightInfos != nullptr) {
         // std::cout << "---" << syntaxHighlightInfos << std::endl;
-        gen[identifier] << grammarExpr >> [=](auto ss) {
+        gen[identifier] << grammarExpr >> [=](auto ss, Rope* rope) {
           if (identifier == "Identifier" || isLowercase(identifier)) {
             identifiers.insert(ss.string());
           }
-          for (auto s : ss) s.evaluate();
+          for (auto s : ss) s.evaluate(rope);
           // std::cout << "---" << syntaxHighlightInfos->size() << std::endl;
           if (syntaxHighlightInfos->begin()->idx == -1) {
             // std::cout << "dss" << std::endl;
-            changeAttr(syntaxHighlightInfos->begin()->attr, ss.position(),
-                       ss.position() + ss.length());
+            // changeAttr(syntaxHighlightInfos->begin()->attr, ss.position(),
+            //            ss.position() + ss.length());
+            rope->setAttr(ss.position(), ss.length(), syntaxHighlightInfos->begin()->attr);
           } else {
             SyntaxHighlightInfos& infos = *syntaxHighlightInfos;
             for (auto info : infos) {
               if (info.idx >= ss.size()) continue;
-              changeAttr(info.attr, ss[info.idx].position(),
-                         ss[info.idx].position() + ss[info.idx].length());
+              // changeAttr(info.attr, ss[info.idx].position(),
+              //            ss[info.idx].position() + ss[info.idx].length());
+              rope->setAttr(ss[info.idx].position(), ss[info.idx].length(), info.attr);
             }
           }
           return "test";
         };
       } else {
-        gen[identifier] << grammarExpr >> [=](auto ss) {
+        gen[identifier] << grammarExpr >> [=](auto ss, Rope* rope) {
           // std::cout << identifier << std::endl;
           if (identifier == "Identifier") {
             identifiers.insert(ss.string());
           }
-          for (auto s : ss) s.evaluate();
+          for (auto s : ss) s.evaluate(rope);
 
           return "test";
         };
@@ -346,7 +280,7 @@ namespace shl {
 std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
   switch (languageType) {
     case LanguageType::CPP: {
-      auto temp = generateParserFromSHL("../src/cpp/cpp.shl");
+      auto temp = generateParserFromSHL("../src/shl/rules/cpp.shl");
       if (temp.first) {
         auto gen = temp.second;
         gen["Program"] << "Grammar*";
@@ -355,7 +289,7 @@ std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
       } else return temp;
     }
     case LanguageType::JAVA: {
-      auto temp = generateParserFromSHL("../src/java/java.shl");
+      auto temp = generateParserFromSHL("../src/shl/rules/java.shl");
       if (temp.first) {
         auto gen = temp.second;
         gen["Program"] << "ImportStatement* Class+ newline*";
@@ -364,7 +298,7 @@ std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
       } else return temp;
     }
     case LanguageType::PYTHON: {
-      auto temp = generateParserFromSHL("../src/python/python3.shl");
+      auto temp = generateParserFromSHL("../src/shl/rules/python3.shl");
       if (temp.first) {
         auto gen = temp.second;
         gen["Grammar"] << "(Comment | ((Heads | Statement | Expr) Comment?))";
@@ -374,9 +308,6 @@ std::pair<bool, Parser> generateLanguageParser(LanguageType languageType) {
         gen.setStart(gen["Program"]);
         return std::make_pair(true, gen);
       } else return temp;
-    }
-    case LanguageType::JSON: {
-      return generateParserFromSHL("../src/json/json.shl");
     }
     default: {
       throw std::invalid_argument("Not implemented yet");

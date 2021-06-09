@@ -31,7 +31,7 @@ namespace shl {
   _Color Colors::get(const std::string& str) { return colors[str]; }
 
   void changeAttr(Attr attr, int begin, int end) {
-    std::cout << "from " << begin << " to " << end << ", set" << attr << std::endl;
+    std::cout << "from " << begin << " to " << end << ", set attr." << std::endl;
   }
 
   ParserBuilder generateParserBuilder(Colors& colors) {
