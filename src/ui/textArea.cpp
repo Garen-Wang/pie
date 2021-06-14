@@ -1,5 +1,6 @@
 #include "libs.hpp"
 #include "textArea.hpp"
+#include "pierc.h"
 
 
 class RopeParserInput : public peg_parser::Input {
@@ -34,6 +35,7 @@ private:
 
 
 TextArea::TextArea(QWidget *parent, const QString &file) : QWidget(parent) {
+    setFont(pierc::getFont());
     m_fm = new QFontMetrics(fontMetrics());
     m_cell_size = QSize {
         m_fm->horizontalAdvance('W'),
@@ -97,6 +99,7 @@ TextArea::TextArea(QWidget *parent, const QString &file) : QWidget(parent) {
 }
 
 TextArea::TextArea(QWidget *parent, Rope *content) : QWidget(parent) {
+    setFont(pierc::getFont());
     m_file = "";
     m_content = content;
     this->resizeByChar(m_content->lines() + 1, m_content->maxCol() + 1);
@@ -530,7 +533,6 @@ void TextArea::setup_pen(QPainter &p, const Style &style) {
 
     p.setFont(ft);
 }
-
 
 
 RopeParserInput::RopeParserInput(const Rope *rope)

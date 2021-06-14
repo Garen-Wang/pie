@@ -39,7 +39,7 @@ public:
     void redo() override;
     void setMode(const QString &) override;
 
-    void setFont(const QFont &);
+    // void setFont(const QFont &);
 
 
 private:

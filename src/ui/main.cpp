@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
     Mode::initDefaultModes();
     QApplication app(argc, argv);
 
-    Window win(NULL);
+    Window win(nullptr);
 
     QObject::connect(&win, SIGNAL (exit()), &app, SLOT (quit()));
 
