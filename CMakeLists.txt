@@ -30,6 +30,7 @@ target_link_libraries(shl PEGParser::PEGParser Qt5::Core Qt5::Widgets)
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
+# pierc: configure pie when loading
 add_library(
   pierc
   ${PROJECT_SOURCE_DIR}/src/pierc/pierc.cpp
