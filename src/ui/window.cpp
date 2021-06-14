@@ -1,9 +1,11 @@
 #include "libs.hpp"
 #include "window.hpp"
+#include "pierc.h"
 
 Window::Window(QWidget *parent)
     : QMainWindow(parent)
 {
+    pierc::gatherInfo();
     auto tabs = new QTabWidget(this);
     this->setCentralWidget(tabs);
 
