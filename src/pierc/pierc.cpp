@@ -84,7 +84,8 @@ namespace pierc {
         std::string input((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
         if (input.empty()) 
           return;
-        // std::cout << input << std::endl;
+        // DEBUG
+        std::cout << input << std::endl;
         try {
             std::string output = cp.run(input);
             std::cout << "output is: " << output << std::endl;

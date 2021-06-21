@@ -94,10 +94,11 @@ FilePath::FilePath(int n_args, ...) {
   va_list ap;
   va_start(ap, n_args);
   const char* a = va_arg(ap, const char *);
-  pathString = a;
+  pathString += a;
   for (int i = 2; i <= n_args; ++i) {
     a = va_arg(ap, const char *);
-    pathString += _separator + a;
+    pathString += _separator + std::string(a);
+    // std::cout << pathString << std::endl;
   }
   va_end(ap);
 }
@@ -106,10 +107,12 @@ std::string FilePath::constructFileString(int n_args, ...) {
   va_list ap;
   va_start(ap, n_args);
   const char* a = va_arg(ap, const char *);
-  std::string ret = a;
+  std::string ret;
+  ret += a;
   for (int i = 2; i <= n_args; ++i) {
     a = va_arg(ap, const char *);
-    ret += _separator + a;
+    ret += _separator + std::string(a);
+    // std::cout << ret << std::endl;
   }
   va_end(ap);
   return ret;
