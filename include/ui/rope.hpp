@@ -172,40 +172,40 @@ struct RopeOperation {
 
 class Rope {
 public:
-	Rope();
-	~Rope();
+    Rope();
+    ~Rope();
 
-	int length() const;
-	int lines() const;
-	int maxCol() const;
+    int length() const;
+    int lines() const;
+    int maxCol() const;
 
-	void insert(
-    	const Buffer *,
-    	int pos, int len,
-    	int k, Attr attr,
-    	bool forget = false
-	);
-	void insert(const QString &, int k, Attr attr);
-	void insert(QChar c, int pos, Attr attr);
+    void insert(
+        const Buffer *,
+        int pos, int len,
+        int k, Attr attr,
+        bool forget = false
+    );
+    void insert(const QString &, int k, Attr attr);
+    void insert(QChar c, int pos, Attr attr);
 
-	void remove(int pos, int len, bool forget = false);
+    void remove(int pos, int len, bool forget = false);
 
-	void setAttr(int pos, int len, Attr attr);
+    void setAttr(int pos, int len, Attr attr);
 
     int seek_pos(int row, int col) const;
     QPair<int, int> get_pos(int idx) const;
 
     RopeIter iterAt(int pos);
-	QList<BufferSlice> query(int pos, int len) const;
+    QList<BufferSlice> query(int pos, int len) const;
 
-	void changeAttr(Attr attr, int begin, int end);
+    void changeAttr(Attr attr, int begin, int end);
 
-	void maintainInterval(Interval *);
-	void forgetInterval(Interval *);
+    void maintainInterval(Interval *);
+    void forgetInterval(Interval *);
 
-	void undo();
-	void redo();
-	void save_operation();
+    void undo();
+    void redo();
+    void save_operation();
 
 private:
     void playOperation(const RopeOperation &op);

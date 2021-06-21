@@ -25,7 +25,6 @@ private slots:
     void doSaveFile(const QString &file);
 
     void exitMenu(bool);
-
     void undo(bool);
     void redo(bool);
 
