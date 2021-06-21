@@ -40,6 +40,7 @@ target_include_directories(
   PUBLIC
   ${PROJECT_SOURCE_DIR}/include/ui
   ${PROJECT_SOURCE_DIR}/include/pierc
+  ${PROJECT_SOURCE_DIR}/include/shl
   INTERFACE
   ${PROJECT_SOURCE_DIR}/include
 )

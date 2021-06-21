@@ -20,137 +20,186 @@ namespace shl {
             gen["lparen"] << "('(')" >> [](auto) {
                 return "lparen";
             };
+
             gen["rparen"] << "(')')" >> [](auto) {
                 return "rparen";
             };
+
             gen["langle"] << "('<')" >> [](auto) {
                 return "langle";
             };
+
             gen["rangle"] << "('>')" >> [](auto) {
                 return "rangle";
             };
+
             gen["lbrace"] << "('{')" >> [](auto) {
                 return "lbrace";
             };
+
             gen["rbrace"] << "('}')" >> [](auto) {
                 return "rbrace";
             };
+
             gen["comma"] << "(',')" >> [](auto) {
                 return "comma";
             };
+
             gen["colon"] << "(':')" >> [](auto) {
                 return "colon";
             };
+
             gen["semicolon"] << "(';')" >> [](auto) {
                 return "semicolon";
             };
-            // TODO: bug here, but have no idea to fix
+
+            // single quotation mark
             gen["single_quote"] << "[']" >> [](auto) {
                 return "single_quote";
             };
+
             gen["double_quote"] << "('\"')" >> [](auto) {
                 return "double_quote";
             };
+
             gen["single_equal"] << "('=')" >> [](auto) {
                 return "single_equal";
             };
+
+            // grammar sugar
             gen["equals"] << "Indent single_equal Indent" >> [](auto) {
                 return "equals";
             };
+
             gen["double_equal"] << "('==')" >> [](auto) {
                 return "double_equal";
             };
+
             gen["newline"] << "('\n')" >> [](auto) {
                 return "newline";
             };
+
             gen["until_newline"] << "((!'\n' .)*)" >> [](auto) {
                 return "until_newline";
             };
+
             gen["tab"] << "('\t')" >> [](auto) {
                 return "tab";
             };
+
             gen["space"] << "(' ')" >> [](auto) {
                 return "space";
             };
+
+            // containing newline
             gen["Indent"] << "(['\t''\n' ]*)" >> [](auto) {
                 return "Indent";
             };
+
+            // newline is exclusive
             gen["Indentation"] << "(' '*)" >> [](auto) {
                 return "Indentation";
             };
+
             gen["lbracket"] << "('[')" >> [](auto) {
                 return "lbracket";
             };
+
             gen["rbracket"] << "(']')" >> [](auto) {
                 return "rbracket";
             };
+
             gen["question_mark"] << "('?')" >> [](auto) {
                 return "question_mark";
             };
+
+            // some special ASCII characters
             gen["bell"] << "('\a')" >> [](auto) {
                 return "bell";
             };
+
             gen["backspace"] << "('\b')" >> [](auto) {
                 return "backspace";
             };
+
             gen["carriage_ret"] << "('\r')" >> [](auto) {
                 return "carriage_ret";
             };
 
+            // marks
             gen["excl"] << "('!')" >> [](auto) {
                 return "excl";
             };
+
             gen["space"] << "(' ')" >> [](auto) {
                 return "space";
             };
+
             gen["hash"] << "('#')" >> [](auto) {
                 return "hash";
             };
+
             gen["dollar"] << "('$')" >> [](auto) {
                 return "dollar";
             };
+
             gen["percent"] << "('%')" >> [](auto) {
                 return "percent";
             };
+
             gen["ampersand"] << "('&')" >> [](auto) {
                 return "ampersand";
             };
+
             gen["asterisk"] << "('*')" >> [](auto) {
                 return "asterisk";
             };
+
             gen["plus"] << "('+')" >> [](auto) {
                 return "plus";
             };
+
             gen["minus"] << "('-')" >> [](auto) {
                 return "minus";
             };
+
             gen["dot"] << "('.')" >> [](auto) {
                 return "dot";
             };
+
             gen["slash"] << "('/')" >> [](auto) {
                 return "slash";
             };
+
             gen["backslash"] << "('\\\\')" >> [](auto) {
                 return "backslash";
             };
+
             gen["underscore"] << "('_')" >> [](auto) {
                 return "underscore";
             };
+
             gen["caret"] << "('^')" >> [](auto) {
                 return "caret";
             };
+
             gen["back_quote"] << "('`')" >> [](auto) {
                 return "back_quote";
             };
+
             gen["tilda"] << "('~')" >> [](auto) {
                 return "tilda";
             };
+
             gen["vertical_bar"] << "('|')" >> [](auto) {
                 return "vertical_bar";
             };
 
+
             /* CharAtomic is defined here, independent of type of languages.
              * Here single and double quotation marks are not included.
+             * There is no need for users to manually define *CharAtomic*.
+             * Only support ASCII characters here.
              */
             gen["CharAtomic"]
                     << "(backslash? ([a-zA-Z0-9] | space | excl | question_mark | hash | dollar | "
@@ -166,6 +215,7 @@ namespace shl {
                 indentDepth.clear();
                 return true;
             } >> [](auto) { return "InitBlocks"; };
+
             gen["SameIndentation"] << "Indentation" << [&](auto &s) -> bool {
                 return s->length() == indentDepth.back();
             } >> [](auto) { return "SameIndentation"; };
@@ -213,27 +263,40 @@ namespace shl {
 
     void initParserBuilder(ParserBuilder &g, Colors &colors, Rope *rope, bool render) {
         g.setSeparator(g["Separators"] << "['\t''\n' ]");
+
         g["Identifier"] << "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" >> [](auto s, Parser &) {
             return nullptr;
         };
+
         g["GrammarExpr"] << R"(('"' (!'"' .)* '"'))" >> [](auto, Parser &) {
             return nullptr;
         };
+
         g["Indent"] << "(['\t''\n' ]*)" >> [](auto, Parser &) {
             return nullptr;
         };
+
+        // EmptyBlock: block that contains nothing
         g["EmptyBlock"] << "('{' Indent '}')" >> [](auto, Parser &) {
             return nullptr;
         };
+
+        // OnlyBlock: block that contains only an attribute
         g["OnlyBlock"] << "('{' Indent Attr Indent '}')" >> [](auto s, Parser &gen) {
             return s[1].evaluate(gen);
         };
+
+        // simply a grammar sugar
         g["equals"] << "(Indent '=' Indent)" >> [](auto, Parser &) {
             return nullptr;
         };
+
+
         g["for"] << "('for')" >> [](auto s, Parser &) {
             return nullptr;
         };
+
+        // for loop
         g["ForStmt"] << "('for' ['\t' ]* '(' Identifier equals Index ';' ['\t' ]* Index ';' ['\t' ]* "
                         "Index ')' ['\t''\n' ]* '$' Identifier equals Attr)" >>
             [](auto s, Parser &gen) {
@@ -249,7 +312,6 @@ namespace shl {
                 }
                 return std::shared_ptr<SyntaxHighlightInfos>(ret);
             };
-        // for loop
         g["SingleIndexStmt"] << "('$' Index equals Attr)" >> [](auto s, Parser &gen) {
             auto x = s[2].evaluate(gen);
             x->begin()->idx = std::stoi(s[0].string());
@@ -271,9 +333,12 @@ namespace shl {
                 return std::shared_ptr<SyntaxHighlightInfos>(ret);
             };
         g["Block"] << "(EmptyBlock | OnlyBlock | MultiBlock)";
+
         g["Index"] << "(('+' | '-')? ('0' | ([1-9][0-9]*)))" >> [](auto s, Parser &) {
             return nullptr;
         };
+
+        // describe keywords of attribute
         g["underline"] << "'underline'" >> [](auto, Parser &) {
             return nullptr;
         };
@@ -289,6 +354,8 @@ namespace shl {
         g["Color"] << colors.getExpr() >> [](auto s, Parser &) {
             return nullptr;
         };
+
+        // use the previous definitions to describe Attr
         g["Attr"] << "(((bold | italic | underline | strikethrough | Color) Indent)* )" >>
             [&](auto s, Parser &) {
                 Attr attr = Style::default_style;
@@ -367,9 +434,11 @@ namespace shl {
             }
             return nullptr;
         };
+
         g["Test"] << "Identifier Indentation" >> [=](auto ss, Parser &gen) {
             return nullptr;
         };
+
         g.setStart(g["Program"]);
     }
 
@@ -387,13 +456,15 @@ namespace shl {
             return std::stoi(str);
     }
     bool isLowercase(const std::string &str) {
-        return std::all_of(str.begin(), str.end(), [](char x) { return islower(x); });
+        return std::all_of(str.begin(), str.end(),
+                         [](char x) { return islower(x); });
     }
 
     std::pair<bool, Parser> generateLanguageParser(LanguageType languageType, Rope *rope) {
         switch (languageType) {
             case LanguageType::CPP: {
-                auto temp = generateParserFromSHL("../src/shl/rules/cpp.shl", rope);
+                auto temp = generateParserFromSHL(
+                    FilePath::constructFileString(2, "shl", "cpp.shl"), rope);
                 if (temp.first) {
                     auto gen = temp.second;
                     gen["Program"] << "Grammar+" >> [](auto ss) {
@@ -407,7 +478,8 @@ namespace shl {
                     return temp;
             }
             case LanguageType::JAVA: {
-                auto temp = generateParserFromSHL("../src/shl/rules/java.shl", rope);
+                auto temp = generateParserFromSHL(
+                    FilePath::constructFileString(2, "shl", "java.shl"), rope);
                 if (temp.first) {
                     auto gen = temp.second;
                     gen["Program"] << "ImportStatement* Class+ newline*" >> [](auto ss) {
@@ -421,7 +493,9 @@ namespace shl {
                     return temp;
             }
             case LanguageType::PYTHON: {
-                auto temp = generateParserFromSHL("../src/shl/rules/python3.shl", rope);
+
+                auto temp = generateParserFromSHL(
+                    FilePath::constructFileString(2, "shl", "python3.shl"), rope);
                 if (temp.first) {
                     auto gen = temp.second;
                     gen["Grammar"] << "(Comment | ((Heads | Statement | Expr) Indentation Comment?))";

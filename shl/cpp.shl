@@ -1,20 +1,31 @@
-// default color is black, if never mentioned
-// recursively look at its color till the bottom definition
+// shl for c++
+// created by Garen
+// default color is black, if never specified
+// support negative index, which works similar to python
+// support color names as keywords
+// support features like underline, strikethrough, etc.
+// for clear source code definition, see *src/shl/parser_builder.cpp* and *src/shl/presets.cpp*
+// may not contain all the corresponding grammar, your feedback is welcome
 
-// markers
+// testing: comment here works properly
 
 // key markers begin
 single_comment_head: "('//')" {
   gray
 }
+
 multi_comment_head: "('/*')" {
   gray
 }
+
 multi_comment_tail: "('*/')" {
   gray
 }
+
 ref: "('&')" { }
+
 deref: "('*')" { }
+
 hash: "('#')" {
   purple
 }
@@ -24,87 +35,115 @@ hash: "('#')" {
 typedef: "('typedef')" {
   blue
 }
+
 pragma: "('pragma')" {
   purple
 }
+
 define: "('define')" {
   purple
 }
+
 ifdef: "('ifdef')" {
   purple
 }
+
 ifndef: "('ifndef')" {
   purple
 }
+
 else: "('else')" {
 
 }
+
 endif: "('endif')" {
   purple
 }
+
 include: "('include')" {
   purple
 }
+
 using: "('using')" {
   blue
 }
+
 namespace: "('namespace')" {
   blue
 }
+
 const: "('const')" {
   blue
 }
+
 static: "('static')" {
   blue
 }
+
 auto: "('auto')" {
   blue
 }
+
 return: "('return')" {
   blue
 }
+
 while: "('while')" {
   blue
 }
+
 if: "('if')" {
   blue
 }
+
 inline: "('inline')" {
   blue
 }
+
 try: "('try')" {
   blue
 }
+
 catch: "('catch')" {
   blue
 }
+
 true: "('true')" {
   blue
 }
+
 false: "('false')" {
   blue
 }
+
 new: "('new')" {
   blue
 }
+
 delete: "('delete')" {
   blue
 }
+
 do: "('do')" {
   blue
 }
+
 for: "('for')" {
   blue
 }
+
 try: "('try')" {
   blue
 }
+
 catch: "('catch')" {
   blue
 }
+
 throw: "('throw')" {
   blue
 }
+
 // keywords end
 
 // grammars begin
@@ -112,42 +151,54 @@ Identifier: "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
   dark_purple
 }
 
+// describe what is comment
 SingleLineComment: "(single_comment_head until_newline)" {
   gray
 }
+
 MultiLineComment: "(multi_comment_head (!multi_comment_tail .)* multi_comment_tail)" {
   italic gray
 }
 
 Comment: "(SingleLineComment | MultiLineComment)" { }
 
+// describe preprocessor directives
+
 Ifdef: "(hash ifdef Indentation Identifier newline)" {
   $2 = orange
 }
+
 Ifndef: "(hash ifndef Indentation Identifier newline)" {
   $2 = orange
 }
+
 Else: "(hash else newline)" {
   $1 = purple
 }
+
 Endif: "(hash endif newline)" {
 
 }
+
 Define: "(hash define Indentation Identifier (Indentation Identifier?) newline)" {
   $2 = green
   $3 = white
 }
+
 Pragma: "(hash pragma Indentation until_newline newline)" {
   $3 = orange
 }
+
 IncludePath: "(([a-zA-Z] | '.' | '/' | '_')+)" {
   orange
 }
+
 Include: "(hash include Indentation ((double_quote IncludePath double_quote) | (langle IncludePath rangle)) newline)" {
   $3 = italic orange
   $5 = italic orange
 }
-// all preprocessings are line feed
+
+// all preprocessings end with line feed
 Preprocessing: "(Ifdef | Ifndef | Else | Endif | Define | Pragma | Include)" {
 
 }
@@ -155,10 +206,13 @@ Preprocessing: "(Ifdef | Ifndef | Else | Endif | Define | Pragma | Include)" {
 UsingNamespace: "(using Indentation namespace Indentation Identifier)" {
   $4 = purple
 }
+
 // QualifiedConstant has its own color
+// So we do not need to manually define here
 UsingAssignment: "(using Indentation Identifier Indentation '=' Indentation QualifiedConstant)" {
 
 }
+
 UsingQualified: "(using Indentation QualifiedConstant)" {
 
 }
@@ -167,6 +221,9 @@ UsingStatement: "((UsingNamespace | UsingAssignment | UsingQualified) semicolon)
 
 }
 
+// here are the example of using for loop with positive and negative index
+// left boundary is closed, while right boundary is open
+// third argument acts as the amount of increment
 QualifiedConstant: "((Identifier '::')* Identifier)" {
   for (i = 0; -0; 2)
     $i = purple
@@ -183,6 +240,7 @@ ArgumentDataType: "(DataType | auto)" {
 Argument: "(ArgumentDataType Indentation (Identifier (single_equal Expr)?)?)" {
   $2 = black
 }
+
 ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
 
 }
@@ -190,6 +248,7 @@ ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
 Parameter: "(Expr)" {
 
 }
+
 ParameterList: "(lparen Indent (Parameter (comma Indent Parameter)*)? rparen)" {
 
 }
@@ -217,53 +276,90 @@ WhileLoop: "(while Indentation lparen Expr rparen Indent Branch)" {
 DoWhileLoop: "(do Indent Branch Indent while Indentation lparen Expr rparen semicolon)" {
 
 }
+
 Declaration: "(DataType Indentation Identifier (equals Expr)? (comma Indentation Identifier (equals Expr)?)*)" {
 
 }
+
 DeclarationStatement: "(Declaration semicolon)" {
 
 }
+
 ForLoop: "(for Indentation lparen Declaration semicolon Indentation Expr semicolon Indentation (Assignment | Expr) rparen Indent Branch)" {
 
 }
 
+// some keywords
 this: "('this')" { blue }
+
 bool: "('bool')" { blue }
+
 int: "('int')" { blue }
+
 char: "('char')" { blue }
+
 long: "('long')" { blue }
+
 double: "('double')" { blue }
+
 float: "('float')" { blue }
+
 short: "('short')" { blue }
+
 long_long: "(long Indentation long)" { }
+
 void: "('void')" { blue }
+
 unsigned: "('unsigned')" { blue }
+
 unsigned_char: "(unsigned Indentation char)" { }
+
 unsigned_int: "(unsigned Indentation int)" { }
+
 unsigned_short: "(unsigned Indentation short)" { }
+
 unsigned_long: "(unsigned Indentation long)" { }
+
 unsigned_long_long: "(unsigned Indentation long_long)" { }
+
 signed: "('signed')" { blue }
+
 signed_char: "(signed Indentation char)" { }
+
 signed_int: "(signed Indentation int)" { }
+
 signed_short: "(signed Indentation short)" { }
+
 signed_long: "(signed Indentation long)" { }
+
 signed_long_long: "(signed Indentation long_long)" { }
+
 long_double: "(long Indentation double)" { }
 
 std: "('std')" { purple }
+
 vector: "('vector')" { purple }
+
 string: "('string')" { purple }
+
 map: "('map')" { purple }
+
 set: "('set')" { purple }
+
 size_type: "('size_type')" { purple }
+
 size_t: "('size_t')" { purple }
+
 iterator: "('iterator')" { purple }
+
 const_iterator: "('const_iterator')" { purple }
+
+// with keywords defined above, we can describe data types
 
 PrimDataType: "(signed_long_long | signed_long | signed_int | signed_short | signed_char | signed | unsigned_long_long | unsigned_long | unsigned_int | unsigned_short | unsigned_char | unsigned | long_long | long_double | long | int | short | char | float | double)" {
 
 }
+
 STLDataType: "((std '::')? (string | vector | map | set | size_t) (TemplateList)? ('::' (iterator | size_type | const_iterator))?)" {
 
 }
@@ -272,28 +368,36 @@ DataType: "((const Indentation)? (static Indentation)? (PrimDataType | STLDataTy
 
 }
 
+// different kinds of literal
 DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-') [0-9]*)?)" {
   green
 }
+
 HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
   green
 }
+
 OctLiteral: "('-'? '0' [0-7]+)" {
   green
 }
+
 BoolLiteral: "(true | false)" {
   blue
 }
-// TODO: bug here, cannot used in nested matches
+
+// directly use *CharAtomic* to describe CharLiteral and StringLiteral
 CharLiteral: "(single_quote CharAtomic single_quote)" {
   orange
 }
+
 StringLiteral: "(double_quote CharAtomic* double_quote)" {
   orange
 }
+
 StringLiterals: "(StringLiteral (Indent StringLiteral)*)" {
 
 }
+
 Literal: "(DecLiteral | HexLiteral | OctLiteral | BoolLiteral | CharLiteral | StringLiterals)" {
 
 }
@@ -341,7 +445,8 @@ IfStatement: "(if Indentation lparen Expr rparen Indent Branch (Indent else Inde
 TryStatement: "(try Indent Block Indent catch Indentation lparen Argument rparen Indent Block)" {
 
 }
-// has the same property as a statement (but actually is a block)
+
+// not a statement, but has the same property as a statement (actually act as a block)
 OtherStatement: "(ForLoop | WhileLoop | DoWhileLoop | IfStatement | TryStatement | FunctionDefinition | Function | Block)" {
 
 }
@@ -361,104 +466,137 @@ ADDR: "(ampersand Expr)" {
 EQ: "(Expr Indent '==' Indent Expr)" {
 
 }
+
 NEQ: "(Expr Indent '!=' Indent Expr)" {
 
 }
+
 LE: "(Expr Indent '<' Indent Expr)" {
 
 }
+
 GE: "(Expr Indent '>' Indent Expr)" {
 
 }
+
 LEQ: "(Expr Indent '<=' Indent Expr)" {
 
 }
+
 GEQ: "(Expr Indent '>=' Indent Expr)" {
 
 }
 
+
 ADD: "(Expr Indent '+' Indent Expr)" {
 
 }
+
 SUB: "(Expr Indent '-' Indent Expr)" {
 
 }
+
 MUL: "(Expr Indent '*' Indent Expr)" {
 
 }
+
 DIV: "(Expr Indent '/' Indent Expr)" {
 
 }
+
 MOD: "(Expr Indent '%' Indent Expr)" {
 
 }
+
 SELF_ADD: "(Expr Indent '+=' Indent Expr)" {
 
 }
+
 SELF_SUB: "(Expr Indent '-=' Indent Expr)" {
 
 }
+
 SELF_MUL: "(Expr Indent '*=' Indent Expr)" {
 
 }
+
 SELF_DIV: "(Expr Indent '/=' Indent Expr)" {
 
 }
+
 SELF_MOD: "(Expr Indent '%=' Indent Expr)" {
 
 }
 
+
 INC: "(Identifier '++' | '++' Identifier)" {
 
 }
+
 DEC: "(Identifier '--' | '--' Identifier)" {
 
 }
+
 AND: "(Expr Indent '&&' Indent Expr)" {
 
 }
+
 OR: "(Expr Indent '||' Indent Expr)" {
 
 }
+
 NOT: "('!' Expr)" {
 
 }
+
 B_AND: "(Expr Indent '&' Indent Expr)" {
 
 }
+
 B_OR: "(Expr Indent '|' Indent Expr)" {
 
 }
+
 SELF_B_AND: "(Expr Indent '&=' Indent Expr)" {
 
 }
+
 SELF_B_OR: "(Expr Indent '|=' Indent Expr)" {
 
 }
+
 B_NOT: "('~' Expr)" {
 
 }
+
 XOR: "(Expr Indent '^' Indent Expr)" {
 
 }
+
 SELF_XOR: "(Expr Indent '^=' Indent Expr)" {
 
 }
+
 LSH: "(Expr Indent '<<' Indent Expr)" {
 
 }
+
 RSH: "(Expr Indent '>>' Indent Expr)" {
 
 }
+
 SELF_LSH: "(Expr Indent '<<=' Indent Expr)" {
 
 }
+
 SELF_RSH: "(Expr Indent '>>=' Indent Expr)" {
 
 }
+
 COND: "(Expr Indent question_mark Indent Expr Indent colon Indent Expr)" {
 
 }
+
 PAREN: "(lparen Expr rparen)" {
 }
 
@@ -466,12 +604,15 @@ PAREN: "(lparen Expr rparen)" {
 VAR: "((Expr ('.' | '->' | '::'))* Identifier ParameterList?)" {
 
 }
+
 PureAssignment: "(Expr equals Expr)" {
 
 }
+
 CompositeAssignment: "(SELF_ADD | SELF_SUB | SELF_MUL | SELF_DIV | SELF_MOD | SELF_B_AND | SELF_B_OR | SELF_XOR | SELF_LSH | SELF_RSH)" {
 
 }
+
 // assignment is a kind of Expr
 Expr: "(PureAssignment | CompositeAssignment | COND | OR | AND | B_OR | XOR | B_AND | EQ | NEQ | LE | LEQ | GE | GEQ | LSH | RSH | ADD | SUB | MUL | DIV | MOD | NOT | DEREF | ADDR | INC | DEC | IDX | VAR | PAREN | Literal | QualifiedConstant)" {
 
@@ -484,14 +625,19 @@ ExprStatement: "(Expr semicolon)" {
 ExprList: "(Expr (comma Indentation Expr)*)" {
 
 }
+
 ExprListStatement: "(ExprList semicolon)" {
 
 }
+
+// keywords for visibility definition
 private: "('private')" { blue }
+
 public: "('public')" { blue }
+
 protected: "('protected')" { blue }
 
-// line feed
+// ends with line feed
 Visibility: "((private | public | protected) colon newline)" {
 
 }
@@ -500,6 +646,7 @@ Statements: "(Statement (Indentation Statement)*)" {
 
 }
 
+// Grammar is the topmost rule to be parsed
 Grammar: "( (Preprocessing | Statements | OtherStatement | SingleLineComment) (Indentation SingleLineComment)? Indent)" {
 
 }

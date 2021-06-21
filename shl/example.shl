@@ -3,15 +3,15 @@ Identifier : "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
   $1 = bold italic underlined black
 }
 
-Identifier : "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
+Identifier : "(([a-zA-Z] | '_' | '$') ([a-zA-Z0-9] | '_')*)" {
   $0 = bold italic underlined black
   $1 = bold italic underlined black
 }
 
-// test
+// comment test
 
 
 Identifier : "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
-  $0 = bold italic underlined black
-  $1 = bold italic underlined black
+  $0 = bold italic underlined cyan
+  $1 = bold italic underlined orange
 }

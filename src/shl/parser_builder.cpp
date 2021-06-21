@@ -1,5 +1,6 @@
 /* The methods defined here are used to generate a *ParserBuilder*
  * and the way to generate *Parser* through generated *ParserBuilder*.
+ * Written by Garen
  */
 
 #include "builtin.h"
@@ -25,6 +26,8 @@ namespace shl {
         return expr;
     }
 
+    // Colors begin
+
     void Colors::append(const std::string &color, const QColor &_color) {
         colors[color] = _color;
     }
@@ -41,8 +44,11 @@ namespace shl {
         return g;
     }
 
+    // Colors end
+
     Colors getPredefinedColors() {
         Colors colors;
+
         colors.append("black", QColor(0, 0, 0));
         colors.append("gray", QColor(80, 80, 80));
         colors.append("shallow_yellow", QColor(204, 255, 0));
@@ -55,6 +61,7 @@ namespace shl {
         colors.append("white", QColor(255, 255, 255));
         colors.append("yellow", QColor(255, 255, 0));
         colors.append("pink", QColor(255, 182, 193));
+
         return colors;
     }
 
@@ -74,8 +81,42 @@ namespace shl {
             //    std::cout << "Parsing result: " << output << std::endl;
         } catch (peg_parser::SyntaxError &e) {
             flag = false;
-            std::cout << "ParserBuilder: Syntax error when parsing " << e.syntax->rule->name << std::endl;
+            std::cout << "ParserBuilder: Syntax error when parsing "
+                      << e.syntax->rule->name << std::endl;
         }
         return std::make_pair(flag, gen);
     }
 }// namespace shl
+
+// FilePath begin
+
+FilePath::FilePath(int n_args, ...) {
+  va_list ap;
+  va_start(ap, n_args);
+  const char* a = va_arg(ap, const char *);
+  pathString = a;
+  for (int i = 2; i <= n_args; ++i) {
+    a = va_arg(ap, const char *);
+    pathString += _separator + a;
+  }
+  va_end(ap);
+}
+
+std::string FilePath::constructFileString(int n_args, ...) {
+  va_list ap;
+  va_start(ap, n_args);
+  const char* a = va_arg(ap, const char *);
+  std::string ret = a;
+  for (int i = 2; i <= n_args; ++i) {
+    a = va_arg(ap, const char *);
+    ret += _separator + a;
+  }
+  va_end(ap);
+  return ret;
+}
+
+std::string FilePath::getPathString() const {
+  return pathString;
+}
+
+// FilePath end
