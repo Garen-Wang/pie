@@ -36,12 +36,12 @@ Mode *Mode::findMode(const QString &name) {
 }
 
 void Mode::initDefaultModes() {
-    static const int left_key = Qt::Key_T;
-    static const int right_key = Qt::Key_N;
-    static const int up_key = Qt::Key_R;
-    static const int down_key = Qt::Key_H;
+    static const int left_key = Qt::Key_J;
+    static const int right_key = Qt::Key_L;
+    static const int up_key = Qt::Key_I;
+    static const int down_key = Qt::Key_K;
     normal.addBinding(
-        Qt::NoModifier, Qt::Key_I,
+        Qt::NoModifier, Qt::Key_U,
         new SetMode("insert")
     );
     normal.addBinding(
