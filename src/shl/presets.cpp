@@ -393,7 +393,7 @@ namespace shl {
     std::pair<bool, Parser> generateLanguageParser(LanguageType languageType, Rope *rope) {
         switch (languageType) {
             case LanguageType::CPP: {
-                auto temp = generateParserFromSHL("../src/shl/rules/cpp.shl", rope);
+                auto temp = generateParserFromSHL("../shl/cpp.shl", rope);
                 if (temp.first) {
                     auto gen = temp.second;
                     gen["Program"] << "Grammar+" >> [](auto ss) {
@@ -407,7 +407,7 @@ namespace shl {
                     return temp;
             }
             case LanguageType::JAVA: {
-                auto temp = generateParserFromSHL("../src/shl/rules/java.shl", rope);
+                auto temp = generateParserFromSHL("../shl/java.shl", rope);
                 if (temp.first) {
                     auto gen = temp.second;
                     gen["Program"] << "ImportStatement* Class+ newline*" >> [](auto ss) {
@@ -421,7 +421,7 @@ namespace shl {
                     return temp;
             }
             case LanguageType::PYTHON: {
-                auto temp = generateParserFromSHL("../src/shl/rules/python3.shl", rope);
+                auto temp = generateParserFromSHL("../shl/python3.shl", rope);
                 if (temp.first) {
                     auto gen = temp.second;
                     gen["Grammar"] << "(Comment | ((Heads | Statement | Expr) Indentation Comment?))";

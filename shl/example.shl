@@ -1,0 +1,17 @@
+Identifier : "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
+  $0 = bold italic underlined black
+  $1 = bold italic underlined black
+}
+
+Identifier : "(([a-zA-Z] | '_' | '$') ([a-zA-Z0-9] | '_')*)" {
+  $0 = bold italic underlined black
+  $1 = bold italic underlined black
+}
+
+// comment test
+
+
+Identifier : "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
+  $0 = bold italic underlined cyan
+  $1 = bold italic underlined orange
+}

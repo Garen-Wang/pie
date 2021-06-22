@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # add dependency include(cmake/CPM.cmake)
+include(cmake/CPM.cmake)
 CPMAddPackage(gh:Garen-Wang/PEGParser@2.2.7)
 
 project(pie VERSION 0.1 LANGUAGES CXX)

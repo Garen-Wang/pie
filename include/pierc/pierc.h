@@ -2,6 +2,7 @@
 #define PIE_PIERC_H
 
 #include <peg_parser/generator.h>
+#include <QFont>
 
 namespace pierc {
     typedef peg_parser::ParserGenerator<std::string> ConfigParser;

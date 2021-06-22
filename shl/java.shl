@@ -1,0 +1,540 @@
+// shl for java
+// created by Garen
+// default color is black, if never specified
+// support negative index, which works similar to python
+// support color names as keywords
+// support features like underline, strikethrough, etc.
+// for clear source code definition, see *src/shl/parser_builder.cpp* and *src/shl/presets.cpp*
+// may not contain all the corresponding grammar, your feedback is welcome
+
+
+// keywords begin
+package: "('package')" {
+  purple
+}
+
+import: "('import')" {
+  purple
+}
+
+class: "('class')" {
+  purple
+}
+
+extends: "('extends')" {
+  purple
+}
+
+implements: "('implements')" {
+  purple
+}
+
+interface: "('interface')" {
+  purple
+}
+
+synchronized: "('synchronized')" {
+  purple
+}
+
+final: "('final')" {
+  purple
+}
+
+// keywords of primitive data types
+
+String: "('String')" {
+  blue
+}
+
+boolean: "('boolean')" {
+  purple
+}
+
+
+byte: "('byte')" {
+  purple
+}
+
+char: "('char')" {
+  purple
+}
+
+int: "('int')" {
+  purple
+}
+
+long: "('long')" {
+  purple
+}
+
+double: "('double')" {
+  purple
+}
+
+float: "('float')" {
+  purple
+}
+
+short: "('short')" {
+  purple
+}
+
+void: "('void')" {
+  purple
+}
+
+this: "('this')" {
+  purple
+}
+
+super: "('super')" {
+  purple
+}
+
+return: "('return')" {
+  purple
+}
+
+true: "('true')" {
+  purple
+}
+
+false: "('false')" {
+  purple
+}
+
+new: "('new')" {
+  purple
+}
+
+// no delete keywords because gc of jvm
+
+null: "('null')" {
+  purple
+}
+
+abstract: "('abstract')" {
+  purple
+}
+
+static: "('static')" {
+  purple
+}
+
+default: "('default')" {
+  purple
+}
+
+private: "('private')" {
+  purple
+}
+
+protected: "('protected')" {
+  purple
+}
+
+public: "('public')" {
+  purple
+}
+
+throw: "('throw')" {
+  purple
+}
+
+throws: "('throws')" {
+  purple
+}
+
+try: "('try')" {
+  purple
+}
+catch: "('catch')" {
+  purple
+}
+
+finally: "('finally')" {
+  purple
+}
+
+
+for: "('for')" {
+  purple
+}
+
+do: "('do')" {
+  purple
+}
+
+while: "('while')" {
+  purple
+}
+
+break: "('break')" {
+  purple
+}
+
+continue: "('continue')" {
+  purple
+}
+
+
+if: "('if')" {
+  purple
+}
+
+else: "('else')" {
+  purple
+}
+
+switch: "('switch')" {
+  purple
+}
+
+case: "('case')" {
+  purple
+}
+
+instanceof: "('instanceof')" {
+  purple
+}
+
+
+// keywords end
+
+// grammar begin
+
+SingleLineComment: "('//' until_newline)" {
+  gray
+}
+
+MultiLineComment: "('/*' (!multi_comment_tail .)* '*/')" {
+  gray
+}
+
+Comment: "(SingleLineComment | MultiLineComment)" {
+
+}
+
+
+Identifier: "(([a-zA-Z] | '_' | '$') ([a-zA-Z0-9] | '_')*)" {
+
+}
+
+Visibility: "(default | public | protected | private)" {
+
+}
+
+PrimDataType: "(boolean | byte | char | double | float | short | long | int | String)" {
+
+}
+
+PackageDataType: "((Identifier '.')* Identifier)" {
+  for (i = 0; -0; 2)
+    $i = blue
+}
+
+DataType: "((PrimDataType | PackageDataType) '[]'*)" {
+
+}
+
+ReturnType: "(void | DataType)" {
+
+}
+
+
+// statements
+PackageClass: "(('*' | Identifier) ('.' ('*' | Identifier))*)" {
+  blue
+}
+
+ImportStatement: "(import Indent PackageClass semicolon Indent)" {
+
+}
+
+Argument: "(DataType Indent Identifier ('[]')*)" {
+
+}
+
+// fixed a bug here
+ArgumentList: "(lparen (Argument (comma Indent Argument)*)? rparen)" {
+
+}
+
+// Method checked
+Method: "(Visibility (Indent static)? (Indent ReturnType)? Indent Identifier ArgumentList Indent Block)" {
+
+}
+
+DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-') [0-9]*)?)" {
+  green
+}
+
+HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
+  green
+}
+
+OctLiteral: "('-'? '0' [0-7]+)" {
+  green
+}
+
+BoolLiteral: "(true | false)" {
+
+}
+
+// CharAtomic will be provided in preset
+StringLiteral: "(double_quote CharAtomic* double_quote)" {
+  orange
+}
+
+CharLiteral: "(single_quote CharAtomic single_quote)" {
+  orange
+}
+
+Literal: "(DecLiteral | HexLiteral | OctLiteral | BoolLiteral | CharLiteral | StringLiteral | null)" {
+
+}
+
+
+IDX: "(Expr (lbracket Expr rbracket)+)" {
+
+}
+
+
+EQ: "(Expr Indent '==' Indent Expr)" {
+
+}
+
+NEQ: "(Expr Indent '!=' Indent Expr)" {
+
+}
+
+LE: "(Expr Indent '<' Indent Expr)" {
+
+}
+
+GE: "(Expr Indent '>' Indent Expr)" {
+
+}
+
+LEQ: "(Expr Indent '<=' Indent Expr)" {
+
+}
+
+GEQ: "(Expr Indent '>=' Indent Expr)" {
+
+}
+
+
+ADD: "(Expr Indent '+' Indent Expr)" {
+
+}
+
+SUB: "(Expr Indent '-' Indent Expr)" {
+
+}
+
+MUL: "(Expr Indent '*' Indent Expr)" {
+
+}
+
+DIV: "(Expr Indent '/' Indent Expr)" {
+
+}
+
+MOD: "(Expr Indent '%' Indent Expr)" {
+
+}
+
+SELF_ADD: "(Expr Indent '+=' Indent Expr)" {
+
+}
+
+SELF_SUB: "(Expr Indent '-=' Indent Expr)" {
+
+}
+
+SELF_MUL: "(Expr Indent '*=' Indent Expr)" {
+
+}
+
+SELF_DIV: "(Expr Indent '/=' Indent Expr)" {
+
+}
+
+SELF_MOD: "(Expr Indent '%=' Indent Expr)" {
+
+}
+
+
+INC: "(Identifier '++' | '++' Identifier)" {
+
+}
+
+DEC: "(Identifier '--' | '--' Identifier)" {
+
+}
+
+AND: "(Expr Indent '&&' Indent Expr)" {
+
+}
+
+OR: "(Expr Indent '||' Indent Expr)" {
+
+}
+
+NOT: "('!' Expr)" {
+
+}
+
+B_AND: "(Expr Indent '&' Indent Expr)" {
+
+}
+
+B_OR: "(Expr Indent '|' Indent Expr)" {
+
+}
+
+SELF_B_AND: "(Expr Indent '&=' Indent Expr)" {
+
+}
+
+SELF_B_OR: "(Expr Indent '|=' Indent Expr)" {
+
+}
+
+B_NOT: "('~' Expr)" {
+
+}
+
+XOR: "(Expr Indent '^' Indent Expr)" {
+
+}
+
+SELF_XOR: "(Expr Indent '^=' Indent Expr)" {
+
+}
+
+LSH: "(Expr Indent '<<' Indent Expr)" {
+
+}
+
+RSH: "(Expr Indent '>>' Indent Expr)" {
+
+}
+
+SELF_LSH: "(Expr Indent '<<=' Indent Expr)" {
+
+}
+
+SELF_RSH: "(Expr Indent '>>=' Indent Expr)" {
+
+}
+
+COND: "(Expr Indent question_mark Indent Expr Indent colon Indent Expr)" {
+
+}
+
+PAREN: "(lparen Expr rparen)" {
+
+}
+
+
+// test here
+CALL: "((Expr ('.'))* Identifier ParameterList)" {
+  $-2 = green
+}
+
+VAR: "((Expr ('.'))* Identifier ParameterList?)" {
+
+}
+
+PureAssignment: "(Expr equals Expr)" {
+
+}
+
+CompositeAssignment: "(SELF_ADD | SELF_SUB | SELF_MUL | SELF_DIV | SELF_MOD | SELF_B_AND | SELF_B_OR | SELF_XOR | SELF_LSH | SELF_RSH)" {
+
+}
+
+NewExpr: "(new Indent DataType (lbracket Expr rbracket)* TemplateList? ParameterList?)" {
+
+}
+
+Expr: "(PureAssignment | CompositeAssignment | NewExpr | COND | OR | AND | B_OR | XOR | B_AND | EQ | NEQ | LE | LEQ | GE | GEQ | LSH | RSH | ADD | SUB | MUL | DIV | MOD | NOT | DEREF | ADDR | INC | DEC | IDX | CALL | VAR | PAREN | Literal)" {
+
+}
+
+
+ParameterList: "(lparen (Expr (comma Indent Expr)*)? rparen)" {
+
+}
+
+TemplateList: "langle  ((DataType) (comma Indent DataType)*)?  rangle" {
+
+}
+
+VariableName: "Identifier" {
+  blue
+}
+
+
+Declaration: "(DataType ('[]')* Indent VariableName (equals Expr)? (comma Indent VariableName (equals Expr)?)*)" {
+
+}
+
+DeclarationStatement: "(Declaration semicolon)" {
+
+}
+
+ExprStatement: "(Expr semicolon)" {
+
+}
+
+ReturnStatement: "(return (Indent Expr)? semicolon)" {
+
+}
+
+BreakStatement: "(break semicolon)" {
+
+}
+
+ContinueStatement: "(continue semicolon)" {
+
+}
+
+Statement: "(ReturnStatement | DeclarationStatement | BreakStatement | ContinueStatement | ExprStatement | IfStatement | ForLoop | WhileLoop | DoWhileLoop)" {
+
+}
+
+Block: "(lbrace Indent ((Method | Statement | Comment) Indent)* rbrace)" {
+
+}
+
+Class: "((Visibility Indent)? class Indent VariableName (Indent extends Indent VariableName)? (Indent implements Indent VariableName (comma Indent VariableName)*)? (Indent throws Indent VariableName (comma Indent VariableName)*)? Indent Block)" {
+
+}
+
+Branch: "(semicolon | Statement | Block)" {
+
+}
+
+ForLoop: "(for Indent lparen Declaration? semicolon Indent Expr? semicolon Indent Expr? rparen Indent Branch)" {
+
+}
+
+WhileLoop: "(while Indent lparen Expr rparen Indent Branch)" {
+
+}
+
+DoWhileLoop: "(do Indent Branch Indent while Indent lparen Expr rparen semicolon)" {
+
+}
+IfStatement: "(if Indent lparen Expr rparen Indent Branch (Indent else Indent if Indent lparen Expr rparen Indent Branch)* (Indent else Indent Branch)?)" {
+
+}
+
+// because functions and variables are all defined in class,
+// there is no need for them to write specific topmost rule.
+
+// grammar end

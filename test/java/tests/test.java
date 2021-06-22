@@ -1,1 +1,0 @@
-System.out.printf("%c player won\n", (t == 1 ? "X" : "O"));

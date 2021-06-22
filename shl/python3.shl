@@ -1,0 +1,646 @@
+#indent_aware
+
+// shebang in the first line means indent-aware mode should be opened by the parser
+// shl for python
+// created by Garen
+// default color is black, if never specified
+// support negative index, which works similar to python
+// support color names as keywords
+// support features like underline, strikethrough, etc.
+// for clear source code definition, see *src/shl/parser_builder.cpp* and *src/shl/presets.cpp*
+// may not contain all the corresponding grammar, your feedback is welcome
+
+
+// keywords begin
+
+and: "('and')" {
+  purple
+}
+
+
+as: "('as')" {
+  purple
+}
+
+assert: "('assert')" {
+  purple
+}
+
+break: "('break')" {
+  purple
+}
+
+class: "'class'" {
+  purple
+}
+
+continue: "('continue')" {
+  purple
+}
+
+def: "('def')" {
+  purple
+}
+
+del: "('del')" {
+  purple
+}
+
+elif: "('elif')" {
+  purple
+}
+
+else: "('else')" {
+  purple
+}
+
+except: "('except')" {
+  purple
+}
+
+False: "('False')" {
+  purple
+}
+
+finally: "('finally')" {
+  purple
+}
+
+for: "('for')" {
+  purple
+}
+
+from: "('from')" {
+  purple
+}
+
+global: "('global')" {
+  purple
+}
+
+if: "('if')" {
+  purple
+}
+
+import: "('import')" {
+  purple
+}
+
+in: "('in')" {
+  purple
+}
+
+is: "('is')" {
+  purple
+}
+
+lambda: "('lambda')" {
+  purple
+}
+
+
+None: "('None')" {
+  purple
+}
+
+nonlocal: "('nonlocal')" {
+  purple
+}
+
+not: "('not')" {
+  purple
+}
+
+or: "('or')" {
+  purple
+}
+
+pass: "('pass')" {
+  purple
+}
+
+raise: "('raise')" {
+  purple
+}
+
+return: "('return')" {
+  purple
+}
+
+True: "('True')" {
+  purple
+}
+
+try: "('try')" {
+  purple
+}
+
+while: "('while')" {
+  purple
+}
+
+with: "('with')" {
+  purple
+}
+
+yield: "('yield')" {
+  purple
+}
+
+self: "('self')" {
+  purple
+}
+
+super: "('super')" {
+  purple
+}
+
+None: "('None')" {
+  purple
+}
+
+
+str: "('str')" {
+  purple
+}
+
+int: "('int')" {
+  purple
+}
+
+float: "('float')" {
+  purple
+}
+
+complex: "('complex')" {
+  purple
+}
+
+list: "('list')" {
+  purple
+}
+
+tuple: "('tuple')" {
+  purple
+}
+
+range: "('range')" {
+  purple
+}
+
+dict: "('dict')" {
+  purple
+}
+
+set: "('set')" {
+  purple
+}
+
+frozenset: "('frozenset')" {
+  purple
+}
+
+bool: "('bool')" {
+  purple
+}
+
+bytes: "('bytes')" {
+  purple
+}
+
+bytearray: "('bytearray')" {
+  purple
+}
+
+memoryview: "('memoryview')" {
+  purple
+}
+
+
+// keywords end
+
+// grammar begin
+Identifier: "(([a-zA-Z] | '_') ([a-zA-Z0-9] | '_')*)" {
+
+}
+
+IdentifierList: "(Identifier (comma Indentation Identifier)*)" {
+
+}
+
+Where: "(Identifier ('.' Identifier)*)" {
+
+}
+WhereList: "(Where (comma Indentation Where)*)" {
+
+}
+
+ImportStatement: "((from Indentation Where Indentation)? import Indentation (asterisk | Where) (Indentation as Indentation Identifier)?)" {
+
+}
+
+// commment
+SingleLineComment: "('#' (!newline .)*)" {
+  gray
+}
+
+MultiLineComment: "(StringLiteral2)" {
+
+}
+
+Comment: "(SingleLineComment | MultiLineComment)" {
+
+}
+
+DecLiteral: "('-'? ('0' | ([1-9] [0-9]*)) ('.' [0-9]+)? ([eE] ('+' | '-')? [0-9]*)?)" {
+  green
+}
+
+HexLiteral: "('-'? '0x' ('0' | ([1-9a-fA-F] [0-9a-fA-F]*)))" {
+  green
+}
+
+OctLiteral: "('-'? '0' [0-7]+)" {
+  green
+}
+
+BoolLiteral: "(True | False)" {
+
+}
+
+ImaginaryLiteral: "(DecLiteral 'j')" {
+  green
+}
+
+// CharAtomic will be provided in preset
+StringLiteral1: "((double_quote CharAtomic* double_quote) | (single_quote CharAtomic* single_quote))" {
+  orange
+}
+
+ThreeSingleQuotes: "(single_quote single_quote single_quote)" {
+
+}
+
+ThreeDoubleQuotes: "(double_quote double_quote double_quote)" {
+
+}
+
+StringLiteral2: "((ThreeSingleQuotes (!ThreeSingleQuotes .)* ThreeSingleQuotes) | (ThreeDoubleQuotes (!ThreeDoubleQuotes .)* ThreeDoubleQuotes))" {
+  orange
+}
+
+StringLiteral: "(StringLiteral2 | StringLiteral1)" {
+
+}
+
+ByteLiteral: "('b' StringLiteral)" {
+  orange
+}
+
+Literal: "(ImaginaryLiteral | DecLiteral | HexLiteral | OctLiteral | BoolLiteral | StringLiteral | ByteLiteral | None)" {
+
+}
+
+
+// operations
+EQ: "(Expr Indentation '==' Indentation Expr)" {
+
+}
+
+NEQ: "(Expr Indentation '!=' Indentation Expr)" {
+
+}
+
+LE: "(Expr Indentation '<' Indentation Expr)" {
+
+}
+
+GE: "(Expr Indentation '>' Indentation Expr)" {
+
+}
+
+LEQ: "(Expr Indentation '<=' Indentation Expr)" {
+
+}
+
+GEQ: "(Expr Indentation '>=' Indentation Expr)" {
+
+}
+
+
+ADD: "(Expr Indentation '+' Indentation Expr)" {
+
+}
+
+SUB: "(Expr Indentation '-' Indentation Expr)" {
+
+}
+
+MUL: "(Expr Indentation '*' Indentation Expr)" {
+
+}
+
+DIV: "(Expr Indentation '/' Indentation Expr)" {
+
+}
+
+POW: "(Expr Indentation '**' Indentation Expr)" {
+
+}
+
+FLOOR_DIV: "(Expr Indentation '//' Indentation Expr)" {
+
+}
+
+MOD: "(Expr Indentation '%' Indentation Expr)" {
+
+}
+
+SELF_ADD: "(Expr Indentation '+=' Indentation Expr)" {
+
+}
+
+SELF_SUB: "(Expr Indentation '-=' Indentation Expr)" {
+
+}
+
+SELF_MUL: "(Expr Indentation '*=' Indentation Expr)" {
+
+}
+
+SELF_DIV: "(Expr Indentation '/=' Indentation Expr)" {
+
+}
+
+SELF_FLOOR_DIV: "(Expr Indentation '//=' Indentation Expr)" {
+
+}
+
+SELF_MOD: "(Expr Indentation '%=' Indentation Expr)" {
+
+}
+
+SELF_POW: "(Expr Indentation '**=' Indentation Expr)" {
+
+}
+
+
+AND: "(Expr Indentation and Indentation Expr)" {
+
+}
+
+OR: "(Expr Indentation or Indentation Expr)" {
+
+}
+
+NOT: "(not Indentation Expr)" {
+
+}
+
+
+B_AND: "(Expr Indentation '&' Indentation Expr)" {
+
+}
+
+B_OR: "(Expr Indentation '|' Indentation Expr)" {
+
+}
+
+SELF_B_AND: "(Expr Indentation '&=' Indentation Expr)" {
+
+}
+
+SELF_B_OR: "(Expr Indentation '|=' Indentation Expr)" {
+
+}
+
+B_NOT: "('~' Expr)" {
+
+}
+
+XOR: "(Expr Indentation '^' Indentation Expr)" {
+
+}
+
+SELF_XOR: "(Expr Indentation '^=' Indentation Expr)" {
+
+}
+
+LSH: "(Expr Indentation '<<' Indentation Expr)" {
+
+}
+
+RSH: "(Expr Indentation '>>' Indentation Expr)" {
+
+}
+
+SELF_LSH: "(Expr Indentation '<<=' Indentation Expr)" {
+
+}
+
+SELF_RSH: "(Expr Indentation '>>=' Indentation Expr)" {
+
+}
+
+
+IS: "(Expr Indentation is Indentation Expr)" {
+
+}
+
+IS_NOT: "(Expr Indentation is Indentation not Indentation Expr)" {
+
+}
+
+IN: "(Expr Indentation in Indentation Expr)" {
+
+}
+
+NOT_IN: "(Expr Indentation not Indentation in Indentation Expr)" {
+
+}
+
+
+Atomic: "(ADD | SUB | MUL | DIV | FLOOR_DIV | MOD | POW | B_AND | B_OR | B_NOT | XOR | LSH | RSH | SELF_ADD | SELF_SUB | SELF_MUL | SELF_DIV | SELF_FLOOR_DIV | SELF_MOD | SELF_POW | SELF_B_AND | SELF_B_OR | SELF_XOR | SELF_LSH | SELF_RSH)" {
+
+}
+
+
+Comparison: "(EQ | NEQ | LE | GE | LEQ | GEQ | AND | OR | NOT | IS | IS_NOT | IN | NOT_IN)" {
+
+}
+
+
+// white spaces are not permitted inside any slice, which may cause unexpected syntax error
+Slice1: "(Expr)" {
+
+}
+
+Slice2: "((Expr? colon Expr?))" {
+
+}
+
+Slice3: "((Expr? colon Expr? colon Expr?))" {
+
+}
+
+Slice: "(lbracket (Slice3 | Slice2 | Slice1) (comma Indentation (Slice3 | Slice2 | Slice1))* rbracket)" {
+
+}
+
+
+List: "(lbracket (Expr (comma Indentation Expr)*)? rbracket)" {
+
+}
+
+Tuple: "(lparen (Expr (comma Indentation Expr)*)? rparen)" {
+
+}
+
+Dict: "(lbrace (Literal Indentation Expr (comma Indentation Literal Indentation Expr)*)? rbrace)" {
+
+}
+
+Parameter: "((Identifier single_equal Expr) | Expr | DataType)" {
+
+}
+
+ParameterList: "(lparen (Parameter (comma Indentation Parameter)*)? rparen)" {
+
+}
+
+CALL: "(Identifier ParameterList Slice?)" {
+  $0 = blue
+}
+
+VAR: "(self | super | (Identifier Slice?))" {
+
+}
+
+// solved *print("sb")*
+ClassExpr2: "(((ParenExpr | CALL | VAR) '.')* (CALL | VAR))" {
+
+}
+
+StringExpr: "(StringLiteral '.' Identifier ParameterList)" {
+  $1 = green
+}
+
+Variable: "(ClassExpr2)" {
+
+}
+
+VariableList: "(Variable (comma Indentation Variable)*)" {
+
+}
+
+ParenExpr: "(lparen Expr rparen)" {
+
+}
+
+IDX: "(Expr (lbracket Expr rbracket)+)" {
+
+}
+
+DataTypeExpr: "(List | Tuple | Dict | Range)" {
+
+}
+
+Expr: "(Atomic | Comparison | IDX | BoolLiteral | DataTypeExpr | Variable | StringExpr | Literal)" {
+
+}
+
+ExprList: "(Expr (comma Indentation Expr)*)" {
+
+}
+
+Assignment: "(VariableList (Indentation '=' Indentation ExprList !lparen)+)" {
+
+}
+
+DelStatement: "(del Indentation Where)" {
+
+}
+// assume that exception has only one argument
+RaiseStatement: "(raise Expr)" {
+
+}
+
+ReturnStatement: "(return (Indentation ExprList)?)" {
+
+}
+
+Statement: "(ImportStatement | Assignment | GlobalStatement | DelStatement | RaiseStatement | ReturnStatement)" {
+
+}
+
+Argument: "(self | (asterisk? Identifier (single_equal Expr)?))" {
+
+}
+
+ArgumentList: "(lparen (Argument (comma Indentation Argument)*)? rparen)" {
+
+}
+
+GlobalStatement: "(global Indentation IdentifierList)" {
+
+}
+
+// only head here, waiting for full expression with block
+DefHead: "(def Indentation Identifier ArgumentList colon)" {
+  $2 = blue
+}
+
+ClassHead: "(class Indentation Identifier (lparen WhereList rparen)? colon)" {
+  $2 = blue
+}
+
+
+IfHead: "(if Indentation Expr colon)" {
+
+}
+
+ElifHead: "(elif Indentation Expr colon)" {
+
+}
+
+ElseHead: "(else colon)" {
+
+}
+
+WhileHead: "(while Indentation Expr colon)" {
+
+}
+
+Range: "(range ArgumentList)" {
+
+}
+
+ForHead: "(for Indentation Identifier Indentation in Indentation (Variable | Range) colon)" {
+
+}
+
+TryHead: "(try colon)" {
+
+}
+
+ExceptHead: "(except (Indentation Identifier)? colon)" {
+
+}
+
+FinallyHead: "(finally colon)" {
+
+}
+
+Heads: "(DefHead | ClassHead | IfHead | ElifHead | ElseHead | WhileHead | ForHead | TryHead | ExceptHead | FinallyHead)" {
+
+}
+
+PrimDataType: "(str | int | float | complex | list | tuple | range | dict | set | frozenset | bool | bytes | bytearray | memoryview)" {
+
+}
+
+DataType: "(PrimDataType)" {
+
+}
+
+// grammar end
