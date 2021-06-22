@@ -35,5 +35,6 @@ int main(int argc, char **argv) {
     } catch (peg_parser::SyntaxError &e) {
         std::cout << "Syntax error when parsing " << e.syntax->rule->name << std::endl;
     }
+
     return 0;
 }

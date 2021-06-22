@@ -18,4 +18,4 @@ namespace pierc {
     QFont getFont();
 }// namespace pierc
 
-#endif//PIE_PIERC_H
+#endif //PIE_PIERC_H

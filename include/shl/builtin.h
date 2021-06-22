@@ -60,6 +60,7 @@ namespace shl {
     void initParserBuilder(ParserBuilder &g, Colors &colors, Rope *, bool render = false);
 
     extern std::vector<int> indentDepth;
+
     extern std::vector<std::pair<int, int>> blockRecords;
 
     void initSHLGrammar(ParserBuilder &g);
@@ -72,5 +73,26 @@ namespace shl {
 
     std::pair<bool, shl::Parser> generateLanguageParser(LanguageType languageType, Rope *);
 }// namespace shl
+
+class FilePath {
+  private:
+    std::string pathString; // stores the actual path on different system
+
+    const static char _separator = 
+#if defined _WIN32 || defined __CYGWIN__
+      '\\';
+#else
+      '/';
+#endif
+
+  public:
+    explicit FilePath(int n_args, ...);
+
+    ~FilePath() = default;
+
+    static std::string constructFileString(int n_args, ...);
+
+    std::string getPathString() const;
+};
 
 #endif// SHL_BUILTIN_H

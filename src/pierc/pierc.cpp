@@ -5,8 +5,8 @@
  */
 
 #include "pierc.h"
+#include "builtin.h"
 
-#include <QFont>
 #include <QtCore/QDebug>
 #include <fstream>
 #include <iostream>
@@ -16,12 +16,16 @@ namespace pierc {
     int fontSize;
 
     void config(ConfigParser &parser) {
+        // newline is included in *Indent*
         parser["Indent"] << "['\t''\n' ]*" >> [](auto s) {
             return "Indent";
         };
+        // but *Indentation* does not contain newline
         parser["Indentation"] << "['\t' ]*" >> [](auto s) {
             return "Indentation";
         };
+
+        // specifications of some keywords
         parser["set"] << "'set'" >> [](auto s) {
             return "set";
         };
@@ -40,21 +44,28 @@ namespace pierc {
         parser["double_quote"] << "'\"'" >> [](auto s) {
             return "double_quote";
         };
+
+
         parser["Number"] << "('0' | ([1-9] [0-9]*))" >> [](auto s) {
             return s.string();
         };
+
         parser["FontName"] << "(double_quote (!double_quote .)* double_quote)" >> [](auto s) {
             return s.string();
         };
+
         parser["setFontFamily"] << "(set Indentation fontFamily single_equal FontName)" >> [](auto s) {
             return fontName = s[4].string();
         };
+
         parser["setFontSize"] << "(set Indentation fontSize single_equal Number)" >> [](auto s) {
             std::string temp = s[4].string();
             fontSize = std::stoi(temp);
             return temp;
         };
+
         parser["Statement"] << "(setFontFamily | setFontSize)";
+
         parser["Program"] << "((Statement Indent)*)";
 
         parser.setStart(parser["Program"]);
@@ -65,8 +76,15 @@ namespace pierc {
         pierc::ConfigParser cp;
         pierc::config(cp);
 
-        std::ifstream ifs("../.pierc");
+        FilePath fp(1, ".pierc");
+        // std::cout << fp.getPathString() << std::endl;
+        std::ifstream ifs(fp.getPathString());
+
+        // std::ifstream ifs("./.pierc");
         std::string input((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+        if (input.empty()) 
+          return;
+        // DEBUG
         std::cout << input << std::endl;
         try {
             std::string output = cp.run(input);
@@ -76,7 +94,8 @@ namespace pierc {
         }
     }
     QFont getFont() {
-        if (!fontName.empty() && fontSize > 0) return QFont(QString().fromStdString(fontName), fontSize);
+        if (!fontName.empty() && fontSize > 0)
+            return QFont(QString().fromStdString(fontName), fontSize);
         else
             return QFont();
     }
