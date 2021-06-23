@@ -5,6 +5,7 @@
 Window::Window(QWidget *parent)
     : QMainWindow(parent)
 {
+    this->resize(1000, 800);
     pierc::gatherInfo();
     auto tabs = new QTabWidget(this);
     this->setCentralWidget(tabs);
