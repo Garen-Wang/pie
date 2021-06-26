@@ -16,18 +16,24 @@ Pie (abbr. Pie Is an Editor) is a cross-platform text editor, intended to be fas
 
 ## Usage
 
+### Windows
 
+1. Download the pre-built version of Pie.
+2. Extract the archive.
+3. Run `pie.exe`.
 
-## Installation
+### Linux
 
+1. Download the Appimage of Pie.
+2. Run `pie-x86_64.Appimage`.
 
+### Build from Source
 
-## Work Progress
+1. Clone the repository.
+2. Build the project in QtCreator or Visual Studio or command line.
+3. Copy `shl` and `test` to the source root of the build directory.
+4. Run the executable.
 
-- create Syntax Highlighting Language(SHL)
-- create ParserBuilder: Parser of SHL
-- generate language parsers in SHL: C++, Java, Python, json, etc.
-- syntax highlighting integrated in SHL
-- Inner support with rope structure
-- performance optimization
+## License
 
+The repository is under WTFPL.
