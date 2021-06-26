@@ -38,7 +38,6 @@ Grammar read_grammar(istream& in)
 		vector<string> entry = split(line);
 
 		if (!entry.empty())
-			// use the category to store the associated rule
 			ret[entry[0]].push_back(
 				Rule(entry.begin() + 1, entry.end()));
 	}
@@ -56,10 +55,6 @@ vector<string> gen_sentence(const Grammar& g)
 	return ret;
 }
 
-bool bracketed(const string& s)
-{
-	return s.size() > 1 && s[0] == '<' && s[s.size() - 1] == '>';
-}
 
 void
 gen_aux(const Grammar& g, const string& word, vector<string>& ret)

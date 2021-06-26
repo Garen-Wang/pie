@@ -1,35 +1,73 @@
 cmake_minimum_required(VERSION 3.14)
 
-# add dependency
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# add dependency include(cmake/CPM.cmake)
 include(cmake/CPM.cmake)
-CPMAddPackage(gh:Garen-Wang/PEGParser@2.2.2)
+CPMAddPackage(gh:Garen-Wang/PEGParser@2.2.7)
 
-# cpp parser
-# project(cpp_parser)
+project(pie VERSION 0.1 LANGUAGES CXX)
 
-# add_executable(cpp_parser
-#   src/cpp/main.cpp
-#     )
+# shl: syntax highlighting language
+add_library(
+  shl
+  ${PROJECT_SOURCE_DIR}/src/shl/parser_builder.cpp
+  ${PROJECT_SOURCE_DIR}/src/shl/presets.cpp
+)
+target_include_directories(
+  shl
+  PUBLIC
+  ${PROJECT_SOURCE_DIR}/include/shl
+  ${PROJECT_SOURCE_DIR}/include/ui
+  INTERFACE
+  ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(shl PEGParser::PEGParser Qt5::Core Qt5::Widgets)
 
-# target_include_directories(cpp_parser
-#   PRIVATE
-#     ${PROJECT_SOURCE_DIR}/include
-# )
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+set(CMAKE_AUTOMOC ON)
 
+# pierc: configure pie when loading
+add_library(
+  pierc
+  ${PROJECT_SOURCE_DIR}/src/pierc/pierc.cpp
+)
+target_include_directories(
+  pierc
+  PUBLIC
+  ${PROJECT_SOURCE_DIR}/include/ui
+  ${PROJECT_SOURCE_DIR}/include/pierc
+  ${PROJECT_SOURCE_DIR}/include/shl
+  INTERFACE
+  ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(pierc PEGParser::PEGParser shl Qt5::Core Qt5::Widgets)
 
-# target_link_libraries(cpp_parser PEGParser::PEGParser)
-# target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+# pie: Pie Is an Editor
+qt5_wrap_cpp(window_src ${PROJECT_SOURCE_DIR}/include/ui/window.hpp)
+qt5_wrap_cpp(textArea_src ${PROJECT_SOURCE_DIR}/include/ui/textArea.hpp)
 
-# shl
-project(shl)
+add_executable(pie
+  ${PROJECT_SOURCE_DIR}/src/ui/config.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/rope.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/actions.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/modes.cpp
 
-add_executable(shl
-    src/shl/main.cpp
-    include/shl/parser_builder.h include/shl/presets.h src/shl/presets.cpp src/shl/parser_builder.cpp)
+  ${window_src}
+  ${textArea_src}
+  ${PROJECT_SOURCE_DIR}/src/ui/textArea.cpp
+  ${PROJECT_SOURCE_DIR}/src/ui/window.cpp
 
-target_include_directories(shl
-    PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    )
-target_link_libraries(shl PEGParser::PEGParser)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+  ${PROJECT_SOURCE_DIR}/src/ui/main.cpp
+)
+include_directories(
+  PUBLIC
+  ${PROJECT_SOURCE_DIR}/include/pierc
+  ${PROJECT_SOURCE_DIR}/include/ui
+  INTERFACE
+  ${PROJECT_SOURCE_DIR}/include
+)
+target_link_libraries(pie Qt5::Core Qt5::Widgets shl pierc)

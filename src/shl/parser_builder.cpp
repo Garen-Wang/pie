@@ -1,82 +1,125 @@
-//
-// Created by garen on 5/29/21.
-//
+/* The methods defined here are used to generate a *ParserBuilder*
+ * and the way to generate *Parser* through generated *ParserBuilder*.
+ * Written by Garen
+ */
 
-#include "shl/parser_builder.h"
+#include "builtin.h"
 
 namespace shl {
-  std::set<std::string> identifiers;
-  SyntaxHighlightInfo::SyntaxHighlightInfo(Attr attr) {
-    this->idx = -1;
-    this->attr = attr;
-  }
-
-  SyntaxHighlightInfo::SyntaxHighlightInfo(int idx, Attr attr) {
-    this->idx = idx;
-    this->attr = attr;
-  }
-
-  std::string Colors::getExpr() {
-    std::string expr = "(";
-    for (const auto& it : colors) {
-      expr += "'" + it.first + "'|";
+    SyntaxHighlightInfo::SyntaxHighlightInfo(Attr attr) {
+        this->idx = -1;
+        this->attr = attr;
     }
-    expr.pop_back();
-    expr += ")";
-    return expr;
-  }
 
-  void Colors::append(const std::string& color, const _Color& _color) { colors[color] = _color; }
-  bool Colors::exist(const std::string& str) { return colors.count(str) != 0; }
-  _Color Colors::get(const std::string& str) { return colors[str]; }
-
-  void changeAttr(Attr attr, int begin, int end) {
-    std::cout << "from " << begin << " to " << end << ", set" << attr << std::endl;
-  }
-
-  ParserBuilder generateParserBuilder(Colors& colors) {
-    ParserBuilder g;
-    initParserBuilder(g, colors);
-    return g;
-  }
-
-  Colors getPredefinedColors() {
-    Colors colors;
-    colors.append("black", _Color(0, 0, 0));
-    colors.append("gray", _Color(220, 220, 220));
-    colors.append("shallow_yellow", _Color(204, 255, 0));
-    colors.append("blue", _Color(0, 0, 255));
-    colors.append("cyan", _Color(0, 255, 255));
-    colors.append("purple", _Color(127, 0, 255));
-    colors.append("green", _Color(0, 128, 0));
-    colors.append("dark_purple", _Color(230, 230, 250));
-    colors.append("orange", _Color(255, 165, 0));
-    colors.append("white", _Color(255, 255, 255));
-    colors.append("yellow", _Color(255, 255, 0));
-    colors.append("pink", _Color(255, 182, 193));
-    return colors;
-  }
-
-  std::pair<bool, Parser> generateParserFromSHL(const std::string& filename) {
-    Colors colors = getPredefinedColors();
-    ParserBuilder g = generateParserBuilder(colors);
-    std::ifstream ifs(filename);
-    std::string shlFile((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-    Parser gen;
-    bool flag = true;
-    try {
-      auto output = g.run(shlFile, gen);
-//      gen["Identifier"] >> [](auto) {
-      //        std::cout << "11" << std::endl;
-      //        return "Identifier";
-      //      };
-      //    std::cout << "Parsing result: " << output << std::endl;
-    } catch (peg_parser::SyntaxError& e) {
-      flag = false;
-      std::cout << "ParserBuilder: Syntax error when parsing " << e.syntax->rule->name << std::endl;
+    SyntaxHighlightInfo::SyntaxHighlightInfo(int idx, Attr attr) {
+        this->idx = idx;
+        this->attr = attr;
     }
-    return std::make_pair(flag, gen);
-  }
 
-  bool renderSyntaxHighlightForSHL(const std::string& filename) { return false; }
-}  // namespace shl
+    std::string Colors::getExpr() {
+        std::string expr = "(";
+        for (const auto &it : colors) {
+            expr += "'" + it.first + "'|";
+        }
+        expr.pop_back();
+        expr += ")";
+        return expr;
+    }
+
+    // Colors begin
+
+    void Colors::append(const std::string &color, const QColor &_color) {
+        colors[color] = _color;
+    }
+    bool Colors::exist(const std::string &str) {
+        return colors.count(str) != 0;
+    }
+    QColor Colors::get(const std::string &str) {
+        return colors[str];
+    }
+
+    ParserBuilder *generateParserBuilder(Colors &colors, Rope *rope) {
+        auto *g = new ParserBuilder();
+        initParserBuilder(*g, colors, rope);
+        return g;
+    }
+
+    // Colors end
+
+    Colors getPredefinedColors() {
+        Colors colors;
+
+        colors.append("black", QColor(0, 0, 0));
+        colors.append("gray", QColor(80, 80, 80));
+        colors.append("shallow_yellow", QColor(204, 255, 0));
+        colors.append("blue", QColor(0, 0, 255));
+        colors.append("cyan", QColor(0, 255, 255));
+        colors.append("purple", QColor(127, 0, 255));
+        colors.append("green", QColor(0, 128, 0));
+        colors.append("dark_purple", QColor(80, 80, 120));
+        colors.append("orange", QColor(255, 20, 147));
+        colors.append("white", QColor(255, 255, 255));
+        colors.append("yellow", QColor(255, 255, 0));
+        colors.append("pink", QColor(255, 182, 193));
+
+        return colors;
+    }
+
+    std::pair<bool, Parser> generateParserFromSHL(const std::string &filename, Rope *rope) {
+        Colors colors = getPredefinedColors();
+        ParserBuilder *g = generateParserBuilder(colors, rope);
+        std::ifstream ifs(filename);
+        std::string shlFile((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+        Parser gen;
+        bool flag = true;
+        try {
+            auto output = g->run(shlFile, gen);
+            // gen["Identifier"] >> [](auto) {
+            //        std::cout << "11" << std::endl;
+            //        return "Identifier";
+            //      };
+            //    std::cout << "Parsing result: " << output << std::endl;
+        } catch (peg_parser::SyntaxError &e) {
+            flag = false;
+            std::cout << "ParserBuilder: Syntax error when parsing "
+                      << e.syntax->rule->name << std::endl;
+        }
+        return std::make_pair(flag, gen);
+    }
+}// namespace shl
+
+// FilePath begin
+
+FilePath::FilePath(int n_args, ...) {
+  va_list ap;
+  va_start(ap, n_args);
+  const char* a = va_arg(ap, const char *);
+  pathString += a;
+  for (int i = 2; i <= n_args; ++i) {
+    a = va_arg(ap, const char *);
+    pathString += _separator + std::string(a);
+    // std::cout << pathString << std::endl;
+  }
+  va_end(ap);
+}
+
+std::string FilePath::constructFileString(int n_args, ...) {
+  va_list ap;
+  va_start(ap, n_args);
+  const char* a = va_arg(ap, const char *);
+  std::string ret;
+  ret += a;
+  for (int i = 2; i <= n_args; ++i) {
+    a = va_arg(ap, const char *);
+    ret += _separator + std::string(a);
+    // std::cout << ret << std::endl;
+  }
+  va_end(ap);
+  return ret;
+}
+
+std::string FilePath::getPathString() const {
+  return pathString;
+}
+
+// FilePath end
