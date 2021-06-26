@@ -38,7 +38,7 @@ struct BufferSlice {
 
 
 
-
+/* Node of rope */ 
 class Node {
 public: 
     /* shallow free */
@@ -57,8 +57,9 @@ public:
 	virtual Node *insert(const Buffer *, int pos, int len, int k, Attr attr) = 0;
 	virtual Node *remove(int pos, int len) = 0;
 	virtual Node *setAttr(int pos, int len, Attr attr) = 0;
-
+	/* Get an index for the position with a particular row and column */
     virtual int seek_pos(int row, int col) const = 0;
+    /* Get an ordered pair, namely row and column for the position with a particular index */
     virtual QPair<int, int> get_pos(int idx) const = 0;
 	virtual void query(QList<BufferSlice> &collector, int pos, int len) const = 0;
 	RopeIter iterAt(int pos);
@@ -67,17 +68,27 @@ private:
 	virtual RopeIter iterAt(int pos, QList<Node*> *left, QList<Node*> *right) = 0;
 
 protected:
+	/* the total number of lines in the subtree of this node. */
 	int m_lines;
+	/* the index of the end position of the first row of content stored in the subtree of this node */
 	int m_first_row;
+	/* the index of the end position of the last row of content stored in the subtree of this node */
+	/* [m_first_row] and [m_last_row] are used to maintain [m_max_col]. */
 	int m_last_row;
+	/* the maximum column in the subtree of this node
+	 * used to support cursor movement */
 	int m_max_col;
+	/* the total number of leaf in the subtree of this node.
+	 * used to keep balance. */
 	int m_size;
+	/* the length of characters stored in the subtree of this node. */
 	int m_length;
 
 friend class Leaf;
 friend class Branch;
 friend class RopeIter;
 };  
+
 
 
 class Leaf : public Node {
@@ -101,7 +112,9 @@ private:
 
 private:
 	const Buffer *m_buf;
+	/* [m_begin] represent the begining point of the content stored in this leaf on the buffer */
 	int m_begin;
+	/* [m_attr] represents the style of the content */
 	Attr m_attr; 
 };
 
@@ -151,8 +164,11 @@ public:
     void next();
 
 private:
+	/* store the nodes along the path while getting rope iterator 
+	 * used to find prev or next */
     QList<Node*> *m_left, *m_right;
     BufferSlice m_slice;
+    /* [m_cursor] points to current character of the leaf.*/
     int m_cursor;
 
 friend class Leaf;
@@ -172,40 +188,40 @@ struct RopeOperation {
 
 class Rope {
 public:
-    Rope();
-    ~Rope();
+	Rope();
+	~Rope();
 
-    int length() const;
-    int lines() const;
-    int maxCol() const;
+	int length() const;
+	int lines() const;
+	int maxCol() const;
 
-    void insert(
-        const Buffer *,
-        int pos, int len,
-        int k, Attr attr,
-        bool forget = false
-    );
-    void insert(const QString &, int k, Attr attr);
-    void insert(QChar c, int pos, Attr attr);
+	void insert(
+    	const Buffer *,
+    	int pos, int len,
+    	int k, Attr attr,
+    	bool forget = false
+	);
+	void insert(const QString &, int k, Attr attr);
+	void insert(QChar c, int pos, Attr attr);
 
-    void remove(int pos, int len, bool forget = false);
+	void remove(int pos, int len, bool forget = false);
 
-    void setAttr(int pos, int len, Attr attr);
+	void setAttr(int pos, int len, Attr attr);
 
     int seek_pos(int row, int col) const;
     QPair<int, int> get_pos(int idx) const;
 
     RopeIter iterAt(int pos);
-    QList<BufferSlice> query(int pos, int len) const;
+	QList<BufferSlice> query(int pos, int len) const;
 
-    void changeAttr(Attr attr, int begin, int end);
+	void changeAttr(Attr attr, int begin, int end);
 
-    void maintainInterval(Interval *);
-    void forgetInterval(Interval *);
+	void maintainInterval(Interval *);
+	void forgetInterval(Interval *);
 
-    void undo();
-    void redo();
-    void save_operation();
+	void undo();
+	void redo();
+	void save_operation();
 
 private:
     void playOperation(const RopeOperation &op);
@@ -221,6 +237,7 @@ private:
 
     QList<QList<RopeOperation>> m_undo;
     QList<QList<RopeOperation>> m_redo;
+    /* used to store the operation after insert or remove operation */
     QList<RopeOperation> m_pending;
 
     QList<Interval*> m_intervals;
