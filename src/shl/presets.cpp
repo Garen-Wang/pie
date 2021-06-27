@@ -463,8 +463,6 @@ namespace shl {
     std::pair<bool, Parser> generateLanguageParser(LanguageType languageType, Rope *rope) {
         switch (languageType) {
             case LanguageType::CPP: {
-                // std::cout << FilePath::constructFileString(3, ".", "shl", "cpp.shl") << std::endl;
-                // std::cout << FilePath::_separator << std::endl;
                 auto temp = generateParserFromSHL(
                     FilePath::constructFileString(3, ".", "shl", "cpp.shl"), rope);
                 if (temp.first) {

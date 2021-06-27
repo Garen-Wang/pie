@@ -7,9 +7,12 @@ Window::Window(QWidget *parent)
 {
     this->resize(1000, 800);
     pierc::gatherInfo();
+    /* The central part of the main window is a tabbed widget
+     * displaying different text areas. */
     auto tabs = new QTabWidget(this);
     this->setCentralWidget(tabs);
 
+    /* Initialize menus */
     m_file_menu = this->menuBar()->addMenu("File");
 
     m_file_open_act = m_file_menu->addAction("Open");
@@ -61,20 +64,25 @@ Window::Window(QWidget *parent)
 
 
 void Window::addTextArea(TextArea *ta, const QString &label) {
+    /* Wrap the text area in a [QScrollArea] to provide
+     * proper scrolling support */
     auto sa = new QScrollArea(this);
     sa->setWidget(ta);
 
+    /* Fill the background of the widget */
     sa->setAutoFillBackground(true);
     QPalette pal = this->palette();
     pal.setColor(QPalette::Window , Style::default_style.bg);
     sa->setPalette(pal);
 
+    /* Add the new text area to the tabs, and make it the focus */
     auto tabs = (QTabWidget*)(this->centralWidget());
     tabs->insertTab(tabs->currentIndex() + 1, sa, label);
     tabs->setCurrentIndex(tabs->currentIndex() + 1);
     ta->setFocus();
 }
 
+/* Helper function that return the focused text area */
 TextArea *Window::currentTextArea() {
     auto tabs = static_cast<QTabWidget*>(this->centralWidget());
     if (! tabs)

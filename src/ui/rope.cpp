@@ -1,5 +1,7 @@
 #include "rope.hpp"
 
+/* There exist three cases when inserting new characters, 
+ * namely the insert position is before / in / behind the interval. */
 void Interval::ins(int pos, int len) {
 	if(pos <= begin) {
 		begin += len;
@@ -156,6 +158,8 @@ Node *Leaf::insert(const Buffer *buf, int pos, int len, int k, Attr attr) {
 
 
 Node *Leaf::remove(int pos, int len) {
+	/* If the interval to be deleted covers the content stored on the leaf,
+	 * we will not delete this leaf immediately, instead, we set the length of this leaf to be 0 */
     if (pos == 0) {
         m_begin += len;
         m_length = qMax(0, m_length - len);
@@ -167,6 +171,9 @@ Node *Leaf::remove(int pos, int len) {
         this->updateRowInfo();
         return this;
     }
+    /* If the content stored in the leaf covers the interval to be delete, 
+	 * we must split the leaf into two leaves, and create a new branch whose
+	 * sub-nodes store the original content of left part and right part respectively */
     else {
         Leaf *left = new Leaf(m_buf, m_begin, pos, m_attr);
         Leaf *right = new Leaf(m_buf, pos + len, m_length - pos - len, m_attr);
@@ -213,7 +220,7 @@ Node *Leaf::setAttr(int pos, int len, Attr attr) {
 int Leaf::seek_pos(int row, int col) const {
     if (row > 0)
         return m_length;
-
+    
     int last_pos = m_lines > 0 ? m_length - 2 : m_length - 1;
     return qMax(0, qMin(col, last_pos));
 }
@@ -287,6 +294,8 @@ void Branch::pushup() {
     	m_last_row = m_left->length() + rlr;
 
 	m_max_col = qMax(m_left->maxCol(), m_right->maxCol());
+	/* The longest row may be stored in both two sub-nodes. 
+	 * In this case, we need to calculate its length based on [llr] and [rfr] */
 	int mid_col_len
     	= (rfr == -1 ? m_length : m_left->length() + rfr)
     	- llr - 1;
@@ -316,9 +325,11 @@ void Branch::maintain() {
 	}
 }
 
+/* Since all the information is stored in the leaf, we need to continuously 
+ * recurse to the  sub-nodes until the leaf node. After inserting the buffer
+ * on the leaf, all nodes along  the path need to be maintained. */
 Node *Branch::insert(const Buffer *buf, int pos, int len, int k, Attr attr) {
     int left_len = m_left->length();
-
     if (k <= left_len)
         m_left = m_left->insert(buf, pos, len, k, attr);
     else
@@ -329,6 +340,8 @@ Node *Branch::insert(const Buffer *buf, int pos, int len, int k, Attr attr) {
     return this;
 }
 
+
+
 Node *Branch::remove(int pos, int len) {
     int left_len = m_left->length();
     if (pos < left_len) {
@@ -338,7 +351,9 @@ Node *Branch::remove(int pos, int len) {
         int start = qMax(0, pos - left_len);
         m_right = m_right->remove(start, pos + len - start - left_len);
     }
-
+    /* Rope is a complete binary tree, if the length of one of the leaves 
+     * is equal to 0, which means it has been deleted, then another leaf
+     * will replace their father node. */
     if (m_left->length() == 0) {
         delete m_left;
         auto r = m_right;
@@ -379,12 +394,15 @@ int Branch::seek_pos(int row, int col) const {
         int ridx = m_right->seek_pos(row - m_left->lines(), col);
         return ridx + m_left->length();
     }
-
+    /* Case3: [row] == [m_left->lines]
+     * [row_s] is the beginning point of the finding row
+     * [row_e] is the endpoint of the finding row */
     int row_s = m_left->lastRow() + 1;
     int row_e = m_right->firstRow();
     row_e = row_e == -1 ? m_length : m_left->length() + row_e;
     return row_s + qMax(0, qMin(col, row_e - row_s - 1));
 }
+
 
 QPair<int, int> Branch::get_pos(int idx) const {
     int left_len = m_left->length();
@@ -644,6 +662,7 @@ void Rope::redo() {
         m_undo.push_front(ops);
     }
 }
+
 
 void Rope::save_operation() {
     if (m_pending.isEmpty())

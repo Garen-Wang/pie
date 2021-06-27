@@ -6,13 +6,15 @@ Pie (abbr. Pie Is an Editor) is a cross-platform text editor, intended to be fas
 
 ## Features
 
-- graphical user interface
+- SOTA inner text representation
 
-- modal editing
+- Graphical user interface
 
-- syntax highlighting
+- Easy-to-use modal editing
 
-- configurable
+- Semantic syntax highlighting
+
+- Configurable
 
 ## Usage
 
@@ -79,14 +81,15 @@ If you would like to change the system default font to your favorite one like Sa
 
 ### Windows
 
-1. Download the pre-built version of Pie.
+1. Download the pre-built Windows version of Pie.
 2. Extract the archive.
 3. Run `pie.exe`.
 
 ### Linux
 
-1. Download the Appimage of Pie.
-2. Run `pie-x86_64.Appimage`.
+1. Download the pre-built Linux version of Pie.
+2. Extract the archive.
+3. Run `pie`.
 
 ### Build from Source
 
@@ -94,6 +97,11 @@ If you would like to change the system default font to your favorite one like Sa
 2. Build the project in QtCreator or Visual Studio or command line.
 3. Copy `shl` and `test` to the source root of the build directory.
 4. Run the executable.
+
+## Collaborators
+
+- Qing Liu, a.k.a [guest0x0](https://github.com/guest0x0)
+- Xiankai Miao
 
 ## License
 
