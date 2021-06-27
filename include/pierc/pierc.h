@@ -5,16 +5,22 @@
 #include <QFont>
 
 namespace pierc {
+    /* a special type of parser, only used to parse .pierc */
     typedef peg_parser::ParserGenerator<std::string> ConfigParser;
 
+    /* store the name of the font */
     extern std::string fontName;
+
+    /* store the size of the font */
     extern int fontSize;
 
+    /* configure the parser after initialization */
     void config(ConfigParser &parser);
 
-    // can use only once at the beginning when pie starts execution
+    /* used only once at the beginning when pie starts its execution */
     void gatherInfo();
 
+    /* retrieve the font family in format of *QFont* */
     QFont getFont();
 }// namespace pierc
 

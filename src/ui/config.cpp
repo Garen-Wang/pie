@@ -14,6 +14,7 @@ bool Style::operator!=(const Style &other) const {
     return !(this->operator==(other));
 }
 
+/* A parchment-like light theme */
 Style Style::default_style = {
     .fg = QColor(0 , 0 , 0 ),
     .bg = QColor(245, 222, 179),

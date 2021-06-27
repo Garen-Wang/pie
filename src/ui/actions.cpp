@@ -1,6 +1,7 @@
 #include "actions.hpp"
 
 
+/* ModifySelection */
 ModifySelection::ModifySelection(bool expand, PrimitveObject obj) {
     m_expand = expand;
     m_obj = obj;
@@ -15,7 +16,7 @@ void ModifySelection::accept(ActionVisitor *visitor) {
 }
 
 
-
+/* InsertChar */
 InsertChar::InsertChar(QChar c) : m_char(c) {}
 
 void InsertChar::accept(ActionVisitor *visitor) {
@@ -23,13 +24,14 @@ void InsertChar::accept(ActionVisitor *visitor) {
 }
 
 
+/* Backspace */
 void Backspace::accept(ActionVisitor *visitor) {
     auto i = visitor->getObject(PrevH);
     visitor->delInterval(i);
 }
 
 
-
+/* InsertNewline */
 void InsertNewline::accept(ActionVisitor *visitor) {
     auto i = visitor->getObject(LineEnd);
     visitor->setSelection(i);
@@ -38,11 +40,13 @@ void InsertNewline::accept(ActionVisitor *visitor) {
 }
 
 
+/* DelSelection */
 void DelSelection::accept(ActionVisitor *visitor) {
     visitor->delInterval(visitor->getObject(Selection));
 }
 
 
+/* PushCountChar */
 PushCountChar::PushCountChar(int c) : m_count(c) {}
 
 void PushCountChar::accept(ActionVisitor *visitor) {
@@ -50,22 +54,26 @@ void PushCountChar::accept(ActionVisitor *visitor) {
 }
 
 
+/* ReplaceSelection */
 void ReplaceSelection::accept(ActionVisitor *visitor) {
     visitor->delInterval(visitor->getObject(Selection));
     visitor->setMode("insert");
 }
 
 
+/* Undo */
 void Undo::accept(ActionVisitor *visitor) {
     visitor->undo();
 }
 
 
+/* Redo */
 void Redo::accept(ActionVisitor *visitor) {
     visitor->redo();
 }
 
 
+/* SetMode */
 SetMode::SetMode(QString mode) : m_mode(mode) {}
 
 void SetMode::accept(ActionVisitor *visitor) {

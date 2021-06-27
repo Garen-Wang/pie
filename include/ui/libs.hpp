@@ -1,5 +1,6 @@
 #pragma once
 
+/* This file contains the necessary external dependencies */
 #include <cstring>
 #include <cassert>
 #include <stack>

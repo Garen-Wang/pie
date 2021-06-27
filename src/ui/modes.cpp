@@ -1,5 +1,6 @@
 #include "modes.hpp"
 
+/* Maintain [all_modes] in constructor and destructor */
 Mode::Mode(QString name) : m_name(name) {
     all_modes.insert(name, this);
 }
@@ -36,10 +37,12 @@ Mode *Mode::findMode(const QString &name) {
 }
 
 void Mode::initDefaultModes() {
+    /* ------ Keys for "normal" mode ------ */
     static const int left_key = Qt::Key_J;
     static const int right_key = Qt::Key_L;
     static const int up_key = Qt::Key_I;
     static const int down_key = Qt::Key_K;
+    /* mode switching keys */
     normal.addBinding(
         Qt::NoModifier, Qt::Key_U,
         new SetMode("insert")
@@ -48,6 +51,8 @@ void Mode::initDefaultModes() {
         Qt::NoModifier, Qt::Key_O,
         new InsertNewline()
     );
+
+    /* directional navigation keys */
     normal.addBinding(
         Qt::NoModifier, right_key,
         new ModifySelection(false, NextH)
@@ -56,6 +61,7 @@ void Mode::initDefaultModes() {
         Qt::ShiftModifier, right_key,
         new ModifySelection(true, NextH)
     );
+
     normal.addBinding(
         Qt::NoModifier, left_key,
         new ModifySelection(false, PrevH)
@@ -64,6 +70,7 @@ void Mode::initDefaultModes() {
         Qt::ShiftModifier, left_key,
         new ModifySelection(true, PrevH)
     );
+
     normal.addBinding(
         Qt::NoModifier, up_key,
         new ModifySelection(false, PrevV)
@@ -72,14 +79,7 @@ void Mode::initDefaultModes() {
         Qt::ShiftModifier, up_key,
         new ModifySelection(true, PrevV)
     );
-    normal.addBinding(
-        Qt::NoModifier, down_key,
-        new ModifySelection(false, NextV)
-    );
-    normal.addBinding(
-        Qt::ShiftModifier, down_key,
-        new ModifySelection(true, NextV)
-    );
+
     normal.addBinding(
         Qt::NoModifier, down_key,
         new ModifySelection(false, NextV)
@@ -89,6 +89,7 @@ void Mode::initDefaultModes() {
         new ModifySelection(true, NextV)
     );
 
+    /* word-based navigation keys */
     normal.addBinding(
         Qt::NoModifier, Qt::Key_W,
         new ModifySelection(false, NextW)
@@ -107,6 +108,7 @@ void Mode::initDefaultModes() {
         new ModifySelection(true, PrevW)
     );
 
+    /* line-based navigation keys */
     normal.addBinding(
         Qt::NoModifier, Qt::Key_X,
         new ModifySelection(false, Line)
@@ -116,6 +118,7 @@ void Mode::initDefaultModes() {
         new ModifySelection(true, Line)
     );
 
+    /* match-based navigation keys */
     normal.addBinding(
         Qt::NoModifier, Qt::Key_M,
         new ModifySelection(false, Match)
@@ -125,6 +128,7 @@ void Mode::initDefaultModes() {
         new ModifySelection(true, Match)
     );
 
+    /* selection modification keys */
     normal.addBinding(
         Qt::NoModifier, Qt::Key_D,
         new DelSelection()
@@ -143,6 +147,8 @@ void Mode::initDefaultModes() {
         new Redo()
     );
 
+    /* ------ Keys for "insert" mode ------ */
+    /* pass through all alphabetic and numeric keys */
     for (char c = 'a'; c <= 'z'; ++c) {
         insert.addBinding(
             Qt::NoModifier, Qt::Key_A + c - 'a',
@@ -153,13 +159,14 @@ void Mode::initDefaultModes() {
             new InsertChar(c - 'a' + 'A')
         );
     }
-    for (char c = '0'; c <= 'z'; ++c) {
+    for (char c = '0'; c <= '9'; ++c) {
         insert.addBinding(
             Qt::NoModifier, Qt::Key_0 + c - '0',
             new InsertChar(c)
         );
     }
 
+    /* ... as well as symbolic keys */
     static const QVector<QPair<char, int>> symb_keys = {
         { ' ', Qt::Key_Space },
         { '\n', Qt::Key_Return },
@@ -181,7 +188,7 @@ void Mode::initDefaultModes() {
             new InsertChar(entry.first)
         );
     }
-
+    /* shifted symbol keys */
     static const QVector<QPair<char, int>> shift_keys = {
         { '~', Qt::Key_AsciiTilde },
         { '!', Qt::Key_Exclam },
@@ -212,11 +219,13 @@ void Mode::initDefaultModes() {
         );
     }
 
+    /* keys going back to "normal" */
     insert.addBinding(
         Qt::NoModifier, Qt::Key_Escape,
         new SetMode("normal")
     );
 
+    /* backspace */
     insert.addBinding(
         Qt::NoModifier, Qt::Key_Backspace,
         new Backspace()
